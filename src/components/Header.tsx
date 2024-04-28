@@ -8,26 +8,39 @@ import logo from "../../public/logo.png"
 import { IoInvertMode } from "react-icons/io5";
 import { IoNotificationsOutline } from "react-icons/io5";
 import HeaderRooms from "./ui/HeaderRooms";
+import HeaderRecent from "./ui/HeaderRecent";
+import HeaderStared from "./ui/HeaderStared";
 
 
 const Header = () => {
     const pathname = usePathname()
+    const notAllowedIn = ["/login", "/login/googleAuth"]
 
-    const isLoginPage = pathname === '/login'; // Adjust the path as needed
-    if (isLoginPage)
+    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
         return null;
     return (
         <>
-            <div className="w-full h-20 sticky top-0">
+            <div className="w-full h-12 sticky top-0 border-b">
                 <div className="mx-auto px-12 h-full">
                     <div className="flex justify-between items-center h-full">
-                        <ul className="flex gap-6 items-center font-semibold">
-                            <li className="cursor-pointer hover:bg-b-hover flex items-center gap-2 p-2 rounded">
-                                <Image src={logo} alt="Logo" className="relative w-8 h-8" />
-                                <span className="font-semibold text-xl">Taskello</span>
+                        <ul className="flex gap-1 items-center font-medium text-sm">
+                            <li className="cursor-pointer hover:bg-gray-200 flex items-center gap-2 px-3 py-1.5 rounded">
+                                <Image src={logo} alt="Logo" className="relative w-6 h-6" />
+                                <span className="font-bold text-md">Taskello</span>
                             </li>
                             <li className="cursor-pointer">
                                 <HeaderRooms />
+                            </li>
+                            <li className="cursor-pointer">
+                                <HeaderRecent />
+                            </li>
+                            <li className="cursor-pointer">
+                                <HeaderStared />
+                            </li>
+                            <li className="cursor-pointer">
+                                <button className="bg-primary hover:bg-primary-dark text-white px-4 py-1.5 rounded">
+                                    Create
+                                </button>
                             </li>
                         </ul>
                         <ul className="flex gap-x-6 text-white items-center">
@@ -41,7 +54,7 @@ const Header = () => {
                                 </div>
                             </li>
                             <li className=" cursor-pointer">
-                                <img src='https://cdn.intra.42.fr/users/c4a7a6c32f60b4dac15f2f7eaa128a5c/ytoumi.jpg' alt="Logo" className="relative w-10 h-10 rounded-full" />
+                                <img src='https://cdn.intra.42.fr/users/c4a7a6c32f60b4dac15f2f7eaa128a5c/ytoumi.jpg' alt="Logo" className="relative w-8 h-8 rounded-full" />
                             </li>
                         </ul>
                     </div>

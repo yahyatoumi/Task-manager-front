@@ -23,7 +23,7 @@ export default function RootLayout({
         <body className={inter.className + " bg-background text-text"}>
           <Sidebar />
           <Header />
-          <main className="h-[calc(100vh-80px)] w-screen sm:w-[calc(100vw-256px)] p-4 sm:ml-64 bg-white">
+          <main className="h-[calc(100vh-48px)] w-screen sm:w-[calc(100vw-256px)] sm:ml-64">
             {children}
           </main>
         </body>

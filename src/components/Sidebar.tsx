@@ -10,14 +10,13 @@ import { IoNotificationsOutline } from "react-icons/io5";
 
 const Sidebar = () => {
     const pathname = usePathname()
+    const notAllowedIn = ["/login", "/login/googleAuth"]
 
-
-    const isLoginPage = pathname === '/login'; // Adjust the path as needed
-    if (isLoginPage)
+    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
         return null;
     return (
         <>
-            <div className="w-64 h-[calc(100vh-80px)] absolute top-20 p-2 hidden sm:block">
+            <div className="w-64 h-[calc(100vh-48px)] absolute top-10 p-2 hidden sm:block">
                 <div className="mx-auto px-8 h-full">
                     <div className="flex justify-between items-center h-full">
                         <Image src={logo} alt="Logo" className="relative w-10 h-10 cursor-pointer" />

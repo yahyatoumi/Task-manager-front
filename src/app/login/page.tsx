@@ -6,69 +6,34 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'
 import jwt from "jsonwebtoken";
+import { getGoogleAuthLink } from '@/api/auth';
 
 
 export default function Login() {
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
+    const [googleUrl, setGoogleUrl] = useState("");
     const router = useRouter()
 
+    const getGoogleLinkHandler = async () => {
+        const res = await getGoogleAuthLink();
+        if (res.status === 200) {
+            setLoading(false);
+            
+            setGoogleUrl(res.data)
+        }
+        console.log("RESSSS", res)
+    }
+
     useEffect(() => {
-        if (localStorage.getItem("user_token"))
-            router.push("/");
+        if (localStorage.getItem("user_token")){
+            router.push("/")
+        }else{
+            getGoogleLinkHandler();
+        }
     }, [])
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    const clientSecret = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET
-
-    const googleLogin = useGoogleLogin({
-        onSuccess: async (codeResponse) => {
-            setLoading(true)
-            console.log("codeResponse", codeResponse)
-            console.log("codeResponse", codeResponse.code)
-            const redirectUri = 'http://localhost:3000';
-            const code = codeResponse.code; // Replace with the authorization code you received
-
-            const tokenUrl = 'https://oauth2.googleapis.com/token';
-            const requestBody = {
-                client_id: clientId,
-                client_secret: clientSecret,
-                redirect_uri: redirectUri,
-                code: code,
-                grant_type: 'authorization_code'
-            };
-            axios.post(tokenUrl, requestBody)
-                .then(response => {
-                    console.log('Access Token:', response.data.access_token);
-                    console.log('Refresh Token:', response.data.refresh_token);
-                    console.log('Expires in (seconds):', response.data.expires_in);
-                    const tokenDRFUrl = 'http://localhost:8000/google/auth';
-                    axios.post(tokenDRFUrl, { access_token: response.data.access_token })
-                        .then(response => {
-                            console.log("RESSSSS", response)
-                            const decodedToken: any = jwt.decode(response.data.access);
-                            localStorage.setItem("token_expiration", decodedToken.exp);
-                            localStorage.setItem('user_token', response.data.access);
-                            localStorage.setItem("refresh_token", response.data.refresh);
-                            router.push('/')
-                        })
-                        .catch(error => {
-                            console.error('Error exchanging authorization code for token:', error.response.data.error);
-                        });
-                })
-                .catch(error => {
-                    console.error('Error exchanging authorization code for token:', error.response.data.error);
-                });
-        },
-        onError: () => {
-            console.error('Google login failed');
-        },
-        flow: 'auth-code',
-        client_id: clientId
-        //@ts-ignore
-    });
-
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-24">
+        <main className="flex min-h-[calc(100vh-48px)] bg-background flex-col items-center justify-center sm:pr-64">
             {
                 loading ?
                     <div role="status">
@@ -79,12 +44,14 @@ export default function Login() {
                         <span className="sr-only">Loading...</span>
                     </div>
                     :
-                    <div onClick={googleLogin} className='p-2 px-24 bg-gray-100 hover:bg-gray-200 cursor-pointer rounded-full flex items-center justify-between gap-2'>
+                    <a
+                        href={googleUrl}
+                        className='p-2 px-24 bg-gray-100 border hover:bg-gray-200 cursor-pointer rounded-full flex items-center justify-between gap-2'>
                         <FcGoogle className='w-6 h-6' />
                         <span>
                             Login with google
                         </span>
-                    </div>
+                    </a>
             }
         </main>
     );

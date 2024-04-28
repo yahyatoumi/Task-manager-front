@@ -2,10 +2,12 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import jwt from "jsonwebtoken";
 import { toast } from 'react-toastify';
 
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
 // ------------------------------- Params Global ----------------------- //
 
 const config: AxiosRequestConfig = {
-    baseURL: "http://127.0.0.1:8000",
+    baseURL: baseUrl,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -15,7 +17,7 @@ const config: AxiosRequestConfig = {
 // --------------------------- POST request ------------------------------ //
 
 const axiosInstance = axios.create({
-    baseURL: 'http://127.0.0.1:8000', // Replace with your API base URL
+    baseURL: baseUrl, // Replace with your API base URL
 });
 
 axios.interceptors.request.use(
@@ -53,7 +55,7 @@ axios.interceptors.request.use(
 
 
 export const postAPI = async (url: string, data: unknown): Promise<unknown> => {
-    console.log(`${config.baseURL}/${url}`);
+    console.log("request toooo", `${config.baseURL}/${url}`);
     return await axios({
         ...config,
         method: 'post',
