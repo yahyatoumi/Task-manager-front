@@ -4,6 +4,7 @@ import "./globals.css";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import StoreProvider from "../lib/StoreProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,11 +22,13 @@ export default function RootLayout({
     <html lang="en">
       <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
         <body className={inter.className + " bg-background text-text"}>
-          <Sidebar />
-          <Header />
-          <main className="h-[calc(100vh-48px)] w-screen sm:w-[calc(100vw-256px)] sm:ml-64">
-            {children}
-          </main>
+          <StoreProvider >
+            <Sidebar />
+            <Header />
+            <main className="h-[calc(100vh-48px)] w-screen sm:w-[calc(100vw-256px)] sm:ml-64">
+              {children}
+            </main>
+          </StoreProvider>
         </body>
       </GoogleOAuthProvider>
     </html>

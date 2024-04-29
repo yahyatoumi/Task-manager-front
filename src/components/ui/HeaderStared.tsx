@@ -30,7 +30,7 @@ const HeaderStared = () => {
             <div
                 ref={displayerRef}
                 onClick={() => setDisplayOptions(!displayOptions)}
-                className="flex items-center gap-2 px-4 py-1.5 hover:bg-gray-200 rounded relative"
+                className={`flex items-center gap-2 px-3 py-1.5 rounded relative ${displayOptions ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
             >
                 <span>Stared</span>
                 <IoIosArrowDown />

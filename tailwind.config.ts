@@ -19,7 +19,7 @@ const config: Config = {
       'primary-dark': '#0056b3', // Darker shade of primary color
       'primary-light': '#4da8ff', // Lighter shade of primary color
       "secondary": "#ffc107",
-      "background": "#f8f9fa",
+      "background": "#fbfcfd",
       "b-hover": "#dfdfdf",
       "text": "#343a40",
       "success": "#28a745",

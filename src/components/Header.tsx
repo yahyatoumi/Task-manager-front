@@ -10,11 +10,14 @@ import { IoNotificationsOutline } from "react-icons/io5";
 import HeaderRooms from "./ui/HeaderRooms";
 import HeaderRecent from "./ui/HeaderRecent";
 import HeaderStared from "./ui/HeaderStared";
+import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 
 
 const Header = () => {
     const pathname = usePathname()
     const notAllowedIn = ["/login", "/login/googleAuth"]
+    const counter = useAppSelector(state => state.counter.value)
+    const dispatch = useAppDispatch()
 
     if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
         return null;

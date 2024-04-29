@@ -1,8 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
+import counterReducer from "./counter/counterSlice"
+import workspacesReducer from "./workspaces/workspacesSlice"
 
 export const makeStore = () => {
   return configureStore({
-    reducer: {}
+    reducer: {
+      counter: counterReducer,
+      workspaces: workspacesReducer
+    }
   })
 }
 
