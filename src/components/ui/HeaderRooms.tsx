@@ -9,7 +9,8 @@ interface WorkspaceCardProps {
 }
 
 const WorkspaceCard: FC<WorkspaceCardProps> = ({ workspace }) => {
-    return <div key={workspace?.id} className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+    console.log("workspace", workspace)
+    return <div className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
         <div className="h-10 w-10 rounded flex items-center justify-center" style={{ backgroundColor: workspace?.color }}>
             <span className="uppercase text-white">{workspace?.name?.slice(0, 1)}</span>
         </div>
@@ -19,7 +20,18 @@ const WorkspaceCard: FC<WorkspaceCardProps> = ({ workspace }) => {
     </div>
 }
 
-const HeaderRooms = () => {
+interface ComponentProps {
+    displayFromMore?: {
+        workspaces: boolean;
+        recent: boolean;
+        stared: boolean;
+        closeAll: boolean
+    },
+    updateDisplayFromMore: any,
+    moreOptionref: any
+}
+
+const HeaderRooms:FC<ComponentProps> = ({displayFromMore, updateDisplayFromMore, moreOptionref}) => {
     const [displayOptions, setDisplayOptions] = useState(false);
     const displayerRef = useRef<HTMLDivElement | null>(null);
     const optionsRef = useRef<HTMLDivElement | null>(null);
@@ -29,16 +41,44 @@ const HeaderRooms = () => {
 
     const handleClick = (e: MouseEvent) => {
         // Check if clicked outside the dropdown (excluding the button itself)
-        console.log("clicked", e)
-        if (optionsRef.current
+        if ((optionsRef.current
             && displayerRef.current
             && !optionsRef.current.contains(e.target as Element)
             && !displayerRef.current.contains(e.target as Element)
             && e.target !== e.currentTarget
+            && moreOptionref?.current
+            && !moreOptionref?.current.contains(e.target as Element))
+        ||
+        (
+            (
+                optionsRef.current
+                && displayerRef.current
+                && !optionsRef.current.contains(e.target as Element)
+                && !displayerRef.current.contains(e.target as Element)
+                && e.target !== e.currentTarget
+                && !moreOptionref?.current
+            )
+        )
+
         ) {
-            setDisplayOptions(false); // Hide dropdown if clicked outside
+            updateDisplayFromMore("closeAll")
+            // console.log("NOT UNDEFINED")
+            // setDisplayOptions(false); // Hide dropdown if clicked outside
         }
     };
+
+
+
+    useEffect(() => {
+        console.log("UPDAAAAAATESSSS")
+        if (displayFromMore) {
+            setDisplayOptions(displayFromMore.workspaces)
+            console.log("WILLLL DISPLAY Workspaces")
+        }
+        if (displayFromMore?.closeAll){
+            setDisplayOptions(false);
+        }
+    }, [displayFromMore])
 
     useEffect(() => {
         document.addEventListener("click", handleClick);
@@ -64,7 +104,7 @@ const HeaderRooms = () => {
             <div
                 ref={displayerRef}
                 onClick={() => setDisplayOptions(!displayOptions)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded relative ${displayOptions ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded relative ${displayOptions ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
             >
                 <span>Workspaces</span>
                 <IoIosArrowDown />
@@ -74,7 +114,7 @@ const HeaderRooms = () => {
                     <div >
                         <span className="text-xs ml-2">Current Workspace</span>
                         {
-                            workspaces.length >= 1 && <WorkspaceCard workspace={workspaces[0]} />
+                            workspaces.length >= 1 && <WorkspaceCard key={workspaces[0]?.id} workspace={workspaces[0]} />
                         }
                     </div>
                     <div className="w-full h-[1px] bg-gray-100 my-2"></div>
@@ -82,7 +122,7 @@ const HeaderRooms = () => {
                         <span className="text-xs ml-2">Your Workspace</span>
                         <div className="flex flex-col gap-2 max-h-64 overflow-y-scroll">
                             {
-                                workspaces.map((workspace) => <WorkspaceCard workspace={workspace} />)
+                                workspaces.map((workspace) => <WorkspaceCard key={workspace?.id} workspace={workspace} />)
                             }
                         </div>
                     </div>
