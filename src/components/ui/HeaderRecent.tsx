@@ -16,7 +16,6 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
 
     const makeWorkspaceFovoriteHandler = async (workspaceId: number) => {
         const res = await makeWorkspaceFavorite(workspaceId)
-        console.log("RESSSSSXX", res, res.status, res.status === 202)
         if (res.status === 202) {
             toast.success("Workspace set as favorite");
             const newWorkspaces = workspaces.map((workspace) => {
@@ -25,13 +24,11 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
                 return res.data;
             })
             dispatch(setWorkspaces(newWorkspaces))
-            console.log("new workspacessss", newWorkspaces)
         }
     }
 
     const makeWorkspaceNotFovoriteHandler = async (workspaceId: number) => {
         const res = await makeWorkspaceNotFavorite(workspaceId)
-        console.log("RESSSSSXX", res, res.status)
         if (res.status === 202) {
             toast.success("Workspace no longer favorite");
             const newWorkspaces = workspaces.map((workspace) => {
@@ -40,7 +37,6 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
                 return res.data;
             })
             dispatch(setWorkspaces(newWorkspaces))
-            console.log("new workspacessss", newWorkspaces)
         }
     }
 
@@ -73,77 +69,49 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
 }
 
 interface ComponentProps {
-    displayFromMore?: {
-        workspaces: boolean;
-        recent: boolean;
-        stared: boolean;
-        closeAll: boolean
-    },
-    updateDisplayFromMore: any,
-    moreOptionref: any
+    display: boolean;
+    closeAll: () => void;
+    toggleSingleTab: (tab: string) => void; 
 }
 
-const HeaderRecent: FC<ComponentProps> = ({ displayFromMore, updateDisplayFromMore, moreOptionref }) => {
-    const [displayOptions, setDisplayOptions] = useState(false);
+const HeaderRecent: FC<ComponentProps> = ({closeAll, display, toggleSingleTab}) => {
     const displayerRef = useRef<HTMLDivElement | null>(null);
     const optionsRef = useRef<HTMLDivElement | null>(null);
     const workspaces = useAppSelector(state => state.workspaces);
 
 
     const handleClick = (e: MouseEvent) => {
-        if ((optionsRef.current
-            && displayerRef.current
-            && !optionsRef.current.contains(e.target as Element)
-            && !displayerRef.current.contains(e.target as Element)
-            && e.target !== e.currentTarget
-            && moreOptionref?.current
-            && !moreOptionref?.current.contains(e.target as Element))
-        ||
-        (
-            (
-                optionsRef.current
-                && displayerRef.current
-                && !optionsRef.current.contains(e.target as Element)
-                && !displayerRef.current.contains(e.target as Element)
-                && e.target !== e.currentTarget
-                && !moreOptionref?.current
-            )
-        )
+        const clickedElement = e.target as Node;
+
+        if (
+            optionsRef.current &&
+            !optionsRef.current.contains(clickedElement) &&
+            displayerRef.current &&
+            !displayerRef.current.contains(clickedElement) &&
+            display
         ) {
-            updateDisplayFromMore("closeAll")
-            // setDisplayOptions(false);
+            closeAll();
         }
     };
-
-    useEffect(() => {
-        if (displayFromMore) {
-            setDisplayOptions(displayFromMore.recent)
-            console.log("WILLLL DISPLAY RECENT")
-        }
-        if (displayFromMore?.closeAll){
-            console.log("closing all")
-            setDisplayOptions(false);
-        }
-    }, [displayFromMore])
 
     useEffect(() => {
         document.addEventListener("click", handleClick);
 
         return () => document.removeEventListener("click", handleClick);
-    }, []);
+    }, [display]);
 
     return (
         <div className="relative">
             <div
                 ref={displayerRef}
-                onClick={() => setDisplayOptions(!displayOptions)}
-                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded relative ${displayOptions ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
+                onClick={() => toggleSingleTab("recent")}
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded relative ${display ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
             >
                 <span>Recent</span>
                 <IoIosArrowDown />
             </div>
-            {displayOptions && (
-                <div ref={optionsRef} className="absolute top-10 rounded-lg left-0 w-72 bg-background p-2 shadow-lg">
+            {display && (
+                <div ref={optionsRef} className="absolute top-6 sm:top-10 rounded-lg -left-20 sm:left-0 w-72 bg-background p-2 shadow-lg">
                     <div className="flex flex-col gap-2">
                         {
                             workspaces?.slice(0, 6).map((workspace) => <WorkspaceCardWithStar key={workspace?.id} workspace={workspace} />)

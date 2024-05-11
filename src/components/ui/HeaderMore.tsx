@@ -9,33 +9,34 @@ import { setWorkspaces } from "@/lib/workspaces/workspacesSlice";
 import { WorkspaceCardWithStar } from "./HeaderRecent";
 
 const optionsList = [
-    "workspaces",
+    "rooms",
     "recent",
     "stared",
 ]
 
 interface ComponentProps {
-    updateDisplayFromMore: any
-    moreOptionref: any
+    toggleSingleTab: (tab: string) => void
+    closeAll: () => void;
+    display: boolean
 }
 
 
-const HeaderMore: FC<ComponentProps> = ({ updateDisplayFromMore, moreOptionref }) => {
-    const [displayOptions, setDisplayOptions] = useState(false);
+const HeaderMore: FC<ComponentProps> = ({ toggleSingleTab, closeAll, display }) => {
     const displayerRef = useRef<HTMLDivElement | null>(null);
+    const optionsRef = useRef<HTMLDivElement | null>(null);
     const workspaces = useAppSelector(state => state.workspaces);
 
 
     const handleClick = (e: MouseEvent) => {
-        if (moreOptionref.current
-            && displayerRef.current
-            && !moreOptionref.current.contains(e.target as Element)
-            && !displayerRef.current.contains(e.target as Element)
-            && e.target !== e.currentTarget
+        const clickedElement = e.target as Node;
+
+        if (
+            displayerRef.current &&
+            !displayerRef.current.contains(clickedElement) &&
+            optionsRef.current &&
+            !optionsRef.current.contains(clickedElement)
         ) {
-            if (!moreOptionref.current.contains(e.target as Element))
-                updateDisplayFromMore("closeAll")
-            setDisplayOptions(false);
+            closeAll();
         }
     };
 
@@ -50,19 +51,23 @@ const HeaderMore: FC<ComponentProps> = ({ updateDisplayFromMore, moreOptionref }
         <div className="relative">
             <div
                 ref={displayerRef}
-                onClick={() => setDisplayOptions(!displayOptions)}
-                className={` flex items-center gap-2 px-3 py-1.5 rounded relative ${displayOptions ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
+                onClick={() => toggleSingleTab('more')}
+                className={` flex items-center gap-2 px-3 py-1.5 rounded relative ${display ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
             >
                 <span>More</span>
                 <IoIosArrowDown />
             </div>
-            {displayOptions && (
-                <div ref={moreOptionref} className="absolute top-10 rounded-lg left-0 w-72 bg-background p-2 shadow-lg">
+            {display && (
+                <div
+                    ref={optionsRef}
+                    className="absolute top-10 rounded-lg left-0 w-72 bg-background p-2 shadow-lg">
                     <div className="flex flex-col gap-2">
                         {
-                            optionsList.map((option, index) => <div onClick={() => {
-                                updateDisplayFromMore(option)
-                            }}
+                            optionsList.map((option, index) => <div
+                                onClick={(e) => {
+                                    toggleSingleTab(option)
+                                }
+                                }
                                 key={index}
                                 className="flex justify-between items-center hover:bg-gray-100 p-1">
                                 <span className="">

@@ -15,6 +15,50 @@ import NewWorkspaceModal from "./ui/NewWorkspaceModal";
 import HeaderMore from "./ui/HeaderMore";
 import { BiPlus } from "react-icons/bi";
 
+const PopUpsComponent = () => {
+    const [displayPopup, setDisplayPopup] = useState({
+        more: false,
+        rooms: false,
+        recent: false,
+        stared: false
+    })
+
+    const closeAll = () => {
+        setDisplayPopup({
+            more: false,
+            rooms: false,
+            recent: false,
+            stared: false
+        })
+    }
+
+    const toggleSingleTab = (tab: string) => {
+        const newState = {
+            more:  tab === "more" && !displayPopup.more,
+            rooms:  tab === "rooms" && !displayPopup.rooms,
+            recent:  tab === "recent" && !displayPopup.recent,
+            stared:  tab === "stared" && !displayPopup.stared
+        }
+        setDisplayPopup(newState);
+    }
+
+
+    return <>
+        <li className="cursor-pointer block sm:hidden">
+            <HeaderMore display={displayPopup.more} toggleSingleTab={toggleSingleTab} closeAll={closeAll}/>
+        </li>
+        <li className="cursor-pointer">
+            <HeaderRooms display={displayPopup.rooms} toggleSingleTab={toggleSingleTab} closeAll={closeAll} />
+        </li>
+        <li className="cursor-pointer">
+            <HeaderRecent display={displayPopup.recent} toggleSingleTab={toggleSingleTab} closeAll={closeAll}/>
+        </li>
+        <li className="cursor-pointer">
+            <HeaderStared display={displayPopup.stared} toggleSingleTab={toggleSingleTab} closeAll={closeAll}/>
+        </li>
+    </>
+}
+
 
 const Header = () => {
     const pathname = usePathname()
@@ -29,10 +73,6 @@ const Header = () => {
         closeAll: true
     })
     const moreOptionref = useRef<any>(null)
-
-    useEffect(() => {
-        console.log("UPDSSDSDSDSDSD", displayFromMore)
-    }, [displayFromMore])
 
     const updateDisplayFromMore = (option: string) => {
         setDisplayFromMore((prev) => ({
@@ -57,18 +97,7 @@ const Header = () => {
                                 <Image src={logo} alt="Logo" className="relative w-6 h-6" />
                                 <span className="font-bold text-md">Taskello</span>
                             </li>
-                            <li className="cursor-pointer block sm:hidden">
-                                <HeaderMore moreOptionref={moreOptionref} updateDisplayFromMore={updateDisplayFromMore} />
-                            </li>
-                            <li className="cursor-pointer">
-                                <HeaderRooms moreOptionref={moreOptionref} displayFromMore={displayFromMore} updateDisplayFromMore={updateDisplayFromMore} />
-                            </li>
-                            <li className="cursor-pointer">
-                                <HeaderRecent moreOptionref={moreOptionref} displayFromMore={displayFromMore} updateDisplayFromMore={updateDisplayFromMore} />
-                            </li>
-                            <li className="cursor-pointer">
-                                <HeaderStared moreOptionref={moreOptionref} displayFromMore={displayFromMore} updateDisplayFromMore={updateDisplayFromMore} />
-                            </li>
+                            <PopUpsComponent />
                             <li className="cursor-pointer">
                                 <button onClick={() => setDisplayModal(true)} className="bg-primary hover:bg-primary-dark text-white sm:px-4 sm:py-1.5 rounded">
                                     <span className="hidden sm:block">

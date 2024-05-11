@@ -9,7 +9,6 @@ interface WorkspaceCardProps {
 }
 
 const WorkspaceCard: FC<WorkspaceCardProps> = ({ workspace }) => {
-    console.log("workspace", workspace)
     return <div className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
         <div className="h-10 w-10 rounded flex items-center justify-center" style={{ backgroundColor: workspace?.color }}>
             <span className="uppercase text-white">{workspace?.name?.slice(0, 1)}</span>
@@ -21,18 +20,12 @@ const WorkspaceCard: FC<WorkspaceCardProps> = ({ workspace }) => {
 }
 
 interface ComponentProps {
-    displayFromMore?: {
-        workspaces: boolean;
-        recent: boolean;
-        stared: boolean;
-        closeAll: boolean
-    },
-    updateDisplayFromMore: any,
-    moreOptionref: any
+    display: boolean;
+    closeAll: () => void;
+    toggleSingleTab: (tab: string) => void;
 }
 
-const HeaderRooms:FC<ComponentProps> = ({displayFromMore, updateDisplayFromMore, moreOptionref}) => {
-    const [displayOptions, setDisplayOptions] = useState(false);
+const HeaderRooms: FC<ComponentProps> = ({ display, closeAll, toggleSingleTab }) => {
     const displayerRef = useRef<HTMLDivElement | null>(null);
     const optionsRef = useRef<HTMLDivElement | null>(null);
     const workspaces = useAppSelector(state => state.workspaces);
@@ -40,51 +33,27 @@ const HeaderRooms:FC<ComponentProps> = ({displayFromMore, updateDisplayFromMore,
 
 
     const handleClick = (e: MouseEvent) => {
-        // Check if clicked outside the dropdown (excluding the button itself)
-        if ((optionsRef.current
-            && displayerRef.current
-            && !optionsRef.current.contains(e.target as Element)
-            && !displayerRef.current.contains(e.target as Element)
-            && e.target !== e.currentTarget
-            && moreOptionref?.current
-            && !moreOptionref?.current.contains(e.target as Element))
-        ||
-        (
-            (
-                optionsRef.current
-                && displayerRef.current
-                && !optionsRef.current.contains(e.target as Element)
-                && !displayerRef.current.contains(e.target as Element)
-                && e.target !== e.currentTarget
-                && !moreOptionref?.current
-            )
-        )
-
+        const clickedElement = e.target as Node;
+        
+        if (
+            optionsRef.current &&
+            !optionsRef.current.contains(clickedElement) &&
+            displayerRef.current &&
+            !displayerRef.current.contains(clickedElement) &&
+            display
         ) {
-            updateDisplayFromMore("closeAll")
-            // console.log("NOT UNDEFINED")
-            // setDisplayOptions(false); // Hide dropdown if clicked outside
+            closeAll();
         }
     };
-
-
-
-    useEffect(() => {
-        console.log("UPDAAAAAATESSSS")
-        if (displayFromMore) {
-            setDisplayOptions(displayFromMore.workspaces)
-            console.log("WILLLL DISPLAY Workspaces")
-        }
-        if (displayFromMore?.closeAll){
-            setDisplayOptions(false);
-        }
-    }, [displayFromMore])
 
     useEffect(() => {
         document.addEventListener("click", handleClick);
 
         return () => document.removeEventListener("click", handleClick);
-    }, []); // Empty dependency array, runs only once after mount
+    }, [display]); // Empty dependency array, runs only once after mount
+
+    useEffect(() => {
+    }, [display])
 
     const getAllWorkspacesHandler = async () => {
         const res = await getAllWorkspaces();
@@ -92,7 +61,6 @@ const HeaderRooms:FC<ComponentProps> = ({displayFromMore, updateDisplayFromMore,
             const workspaces = res.data
             dispatch(setWorkspaces(workspaces))
         }
-        console.log("RESSSSS", res)
     }
 
     useEffect(() => {
@@ -103,14 +71,14 @@ const HeaderRooms:FC<ComponentProps> = ({displayFromMore, updateDisplayFromMore,
         <div className="relative">
             <div
                 ref={displayerRef}
-                onClick={() => setDisplayOptions(!displayOptions)}
-                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded relative ${displayOptions ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
+                onClick={() => toggleSingleTab("rooms")}
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded relative ${display ? "text-primary bg-blue-100 hover:bg-blue-200" : " hover:bg-gray-200"}`}
             >
                 <span>Workspaces</span>
                 <IoIosArrowDown />
             </div>
-            {displayOptions && (
-                <div ref={optionsRef} className="absolute top-10 left-0 w-80 rounded-lg shadow-lg p-2 bg-background">
+            {display && (
+                <div ref={optionsRef} className="absolute top-6 sm:top-10 -left-20 sm:left-0 w-80 rounded-lg shadow-lg p-2 bg-background">
                     <div >
                         <span className="text-xs ml-2">Current Workspace</span>
                         {
