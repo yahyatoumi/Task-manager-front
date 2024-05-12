@@ -7,6 +7,7 @@ import Sidebar from "@/components/Sidebar";
 import StoreProvider from "../lib/StoreProvider";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Modal from "@/components/ui/NewWorkspaceModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
             <main className="h-[calc(100vh-48px)] w-screen sm:w-[calc(100vw-256px)] sm:ml-64">
               {children}
             </main>
+            <Modal />
           </StoreProvider>
           <ToastContainer />
         </body>

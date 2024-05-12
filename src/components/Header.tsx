@@ -14,6 +14,7 @@ import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import NewWorkspaceModal from "./ui/NewWorkspaceModal";
 import HeaderMore from "./ui/HeaderMore";
 import { BiPlus } from "react-icons/bi";
+import { display } from "@/lib/workspaceModal/workspaceModalSlice";
 
 const PopUpsComponent = () => {
     const [displayPopup, setDisplayPopup] = useState({
@@ -63,9 +64,8 @@ const PopUpsComponent = () => {
 const Header = () => {
     const pathname = usePathname()
     const notAllowedIn = ["/login", "/login/googleAuth"]
-    const counter = useAppSelector(state => state.counter.value)
     const dispatch = useAppDispatch()
-    const [displayModal, setDisplayModal] = useState(false)
+    const workspaceModal = useAppSelector(state => state.workspaceModal.value)
     const [displayFromMore, setDisplayFromMore] = useState({
         workspaces: false,
         recent: false,
@@ -99,7 +99,7 @@ const Header = () => {
                             </li>
                             <PopUpsComponent />
                             <li className="cursor-pointer">
-                                <button onClick={() => setDisplayModal(true)} className="bg-primary hover:bg-primary-dark text-white sm:px-4 sm:py-1.5 rounded">
+                                <button onClick={() => dispatch(display())} className="bg-primary hover:bg-primary-dark text-white sm:px-4 sm:py-1.5 rounded">
                                     <span className="hidden sm:block">
                                         Create
                                     </span>
@@ -126,7 +126,6 @@ const Header = () => {
                     </div>
                 </div>
             </div>
-            {displayModal && <NewWorkspaceModal setDisplayModal={setDisplayModal} />}
         </>
     );
 };

@@ -3,6 +3,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { getAllWorkspaces } from "@/api/RequestInHeader";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setWorkspaces } from "@/lib/workspaces/workspacesSlice";
+import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice";
 
 interface WorkspaceCardProps {
     workspace: WorkspaceType
@@ -60,6 +61,7 @@ const HeaderRooms: FC<ComponentProps> = ({ display, closeAll, toggleSingleTab })
         if (res.status === 200) {
             const workspaces = res.data
             dispatch(setWorkspaces(workspaces))
+            dispatch(setCurrentWorkspace(workspaces[0]))
         }
     }
 

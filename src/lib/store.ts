@@ -1,12 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit'
 import counterReducer from "./counter/counterSlice"
 import workspacesReducer from "./workspaces/workspacesSlice"
+import workspaceModalReducer from './workspaceModal/workspaceModalSlice'
+import currentWorkspaceReducer from './currentWorkspace/currentWorkspaceSlice'
+import sidebarReducer from './sidebar/sidebarSlice'
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       counter: counterReducer,
-      workspaces: workspacesReducer
+      workspaces: workspacesReducer,
+      workspaceModal: workspaceModalReducer,
+      currentWorkspace: currentWorkspaceReducer,
+      sidebar: sidebarReducer
     }
   })
 }

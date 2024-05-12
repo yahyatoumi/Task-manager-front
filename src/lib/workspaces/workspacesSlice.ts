@@ -1,11 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 
-
 const initialState: WorkspaceType[] = []
 
-const counterSlice = createSlice({
-    name: 'counter',
+const workspacesSlice = createSlice({
+    name: 'workspaces',
     initialState,
     reducers: {
         setWorkspaces: (state, action) => {
@@ -14,5 +13,5 @@ const counterSlice = createSlice({
     }
 })
 
-export const { setWorkspaces } = counterSlice.actions
-export default counterSlice.reducer
+export const { setWorkspaces } = workspacesSlice.actions
+export default workspacesSlice.reducer
