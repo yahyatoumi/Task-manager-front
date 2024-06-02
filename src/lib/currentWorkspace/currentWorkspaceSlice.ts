@@ -19,6 +19,7 @@ const currentWorkspaceSlice = createSlice({
     reducers: {
         setCurrentWorkspace: (state, action) => {
             console.log("TATEEEE", action.payload)
+            localStorage.setItem("currentWorkspaceId", action.payload.id.toString())
             return action.payload;
         }
     }

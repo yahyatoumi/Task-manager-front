@@ -8,6 +8,7 @@ import StoreProvider from "../lib/StoreProvider";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Modal from "@/components/ui/NewWorkspaceModal";
+import { ReactQueryProvider } from "./react-query-proider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,8 +24,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
-        <body className={inter.className + " bg-background text-text"}>
+      <body className={inter.className + " bg-background text-text"}>
+        <ReactQueryProvider>
           <StoreProvider >
             <Sidebar />
             <Header />
@@ -33,9 +34,9 @@ export default function RootLayout({
             </main>
             <Modal />
           </StoreProvider>
-          <ToastContainer />
-        </body>
-      </GoogleOAuthProvider>
+        </ReactQueryProvider>
+        <ToastContainer />
+      </body>
     </html>
   );
 }

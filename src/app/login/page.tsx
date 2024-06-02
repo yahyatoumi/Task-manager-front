@@ -1,11 +1,8 @@
 
 "use client"
-import { useGoogleLogin } from '@react-oauth/google';
 import { FcGoogle } from "react-icons/fc";
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'
-import jwt from "jsonwebtoken";
 import { getGoogleAuthLink } from '@/api/auth';
 
 

@@ -2,28 +2,36 @@ import { useEffect, useRef, useState, FC } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { FaRegStar, FaStar } from "react-icons/fa6";
-import { makeWorkspaceFavorite, makeWorkspaceNotFavorite } from "@/api/RequestInHeader";
+import { getAllWorkspaces, makeWorkspaceFavorite, makeWorkspaceNotFavorite } from "@/api/workspaceRequests";
 import { toast } from "react-toastify";
 import { setWorkspaces } from "@/lib/workspaces/workspacesSlice";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface WorkspaceCardProps {
     workspace: WorkspaceType
 }
 
 export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => {
-    const workspaces = useAppSelector(state => state.workspaces);
     const dispatch = useAppDispatch()
+    const { data: workspaces } = useQuery({
+        queryKey: ["workspaces"],
+        queryFn: getAllWorkspaces
+    })
+    const queryClient = useQueryClient();
 
     const makeWorkspaceFovoriteHandler = async (workspaceId: number) => {
         const res = await makeWorkspaceFavorite(workspaceId)
         if (res.status === 202) {
             toast.success("Workspace set as favorite");
-            const newWorkspaces = workspaces.map((workspace) => {
+            const newWorkspaces = workspaces?.data.map((workspace: WorkspaceType) => {
                 if (workspace.id !== res.data.id)
                     return workspace
                 return res.data;
             })
-            dispatch(setWorkspaces(newWorkspaces))
+            const newQueryState = {
+                data: [...newWorkspaces]
+            }
+            queryClient.setQueryData(["workspaces"], newQueryState)
         }
     }
 
@@ -31,17 +39,21 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
         const res = await makeWorkspaceNotFavorite(workspaceId)
         if (res.status === 202) {
             toast.success("Workspace no longer favorite");
-            const newWorkspaces = workspaces.map((workspace) => {
+            const newWorkspaces = workspaces?.data.map((workspace: WorkspaceType) => {
                 if (workspace.id !== res.data.id)
                     return workspace
                 return res.data;
             })
-            dispatch(setWorkspaces(newWorkspaces))
+            const newQueryState = {
+                data: [...newWorkspaces]
+            }
+            queryClient.setQueryData(["workspaces"], newQueryState)
         }
     }
 
     return <div className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-        <div className="h-8 w-10 rounded flex items-center justify-center" style={{ backgroundColor: workspace?.color }}>
+        <div className="h-8 w-10 rounded flex items-center justify-center text-xl font-semibold capitalize text-white" style={{ backgroundColor: workspace?.color }}>
+            {workspace.name.charAt(0)}
         </div>
         <div className="flex justify-between w-full items-center">
             <div className="flex flex-col">
@@ -71,13 +83,16 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
 interface ComponentProps {
     display: boolean;
     closeAll: () => void;
-    toggleSingleTab: (tab: string) => void; 
+    toggleSingleTab: (tab: string) => void;
 }
 
-const HeaderRecent: FC<ComponentProps> = ({closeAll, display, toggleSingleTab}) => {
+const HeaderRecent: FC<ComponentProps> = ({ closeAll, display, toggleSingleTab }) => {
     const displayerRef = useRef<HTMLDivElement | null>(null);
     const optionsRef = useRef<HTMLDivElement | null>(null);
-    const workspaces = useAppSelector(state => state.workspaces);
+    const { data: workspaces } = useQuery({
+        queryKey: ["workspaces"],
+        queryFn: getAllWorkspaces
+    })
 
 
     const handleClick = (e: MouseEvent) => {
@@ -111,10 +126,10 @@ const HeaderRecent: FC<ComponentProps> = ({closeAll, display, toggleSingleTab}) 
                 <IoIosArrowDown />
             </div>
             {display && (
-                <div ref={optionsRef} className="absolute top-6 sm:top-10 rounded-lg -left-20 sm:left-0 w-72 bg-background p-2 shadow-lg">
+                <div ref={optionsRef} className="absolute top-6 sm:top-10 rounded-lg -left-20 sm:left-0 w-72 max-h-96 overflow-y-auto bg-background p-2 shadow-lg">
                     <div className="flex flex-col gap-2">
                         {
-                            workspaces?.slice(0, 6).map((workspace) => <WorkspaceCardWithStar key={workspace?.id} workspace={workspace} />)
+                            workspaces?.data?.map((workspace: WorkspaceType) => <WorkspaceCardWithStar key={workspace?.id} workspace={workspace} />)
                         }
                     </div>
                 </div>

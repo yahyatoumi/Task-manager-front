@@ -16,30 +16,39 @@ import { RiGroupLine } from "react-icons/ri";
 import { HiPlus } from "react-icons/hi";
 import { IoSettingsOutline } from "react-icons/io5";
 import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice";
+import { useQuery } from "@tanstack/react-query";
+import { getAllWorkspaces } from "@/api/workspaceRequests";
 
 interface ComponentProps {
     toggleComponent: (component: string) => void;
 }
 
 const WorkspacesComponent: FC<ComponentProps> = ({ toggleComponent }) => {
-    const workspaces = useAppSelector(state => state.workspaces)
-    const currentWorkspace = useAppSelector(state => state.currentWorkspace)
+    const { data: workspaces, isLoading } = useQuery({
+        queryKey: ["workspaces"],
+        queryFn: getAllWorkspaces
+    })
+    const currentWorkspace = useAppSelector(state => (state.currentWorkspace.id ? state.currentWorkspace : null))
     const dispatch = useAppDispatch();
 
+
     return <div className="absolute z-10 left-[calc(100%-48px)] top-full w-80 bg-background rounded-lg shadow-lg flex flex-col py-2">
-        <div className="border-b w-full mb-2">
-            <p className="text-xs px-4">Current Workspace</p>
-            <div className='flex gap-2 items-center px-4 hover:bg-gray-100 py-2'>
-                <div className="w-8 h-8 flex items-center justify-center rounded bg-blue-500 text-white text-xl font-semibold capitalize">
-                    {currentWorkspace.name.charAt(0)}
-                </div>
-                <p>
-                    {currentWorkspace.name}
-                </p>
-            </div>
-        </div>
         {
-            workspaces.filter((workspace: WorkspaceType) => workspace.id !== currentWorkspace.id).map((workspace: WorkspaceType) => <div
+            currentWorkspace &&
+            <div className="border-b w-full mb-2">
+                <p className="text-xs px-4">Current Workspace</p>
+                <div className='flex gap-2 items-center px-4 hover:bg-gray-100 py-2'>
+                    <div className="w-8 h-8 flex items-center justify-center rounded bg-blue-500 text-white text-xl font-semibold capitalize">
+                        {currentWorkspace?.name.charAt(0)}
+                    </div>
+                    <p>
+                        {currentWorkspace?.name}
+                    </p>
+                </div>
+            </div>
+        }
+        {
+            workspaces?.data.filter((workspace: WorkspaceType) => workspace.id !== currentWorkspace?.id).map((workspace: WorkspaceType) => <div
                 onClick={() => dispatch(setCurrentWorkspace(workspace))}
                 className="flex gap-2 items-center px-4 hover:bg-gray-100 py-2"
             >
@@ -58,7 +67,7 @@ const Sidebar = () => {
     const pathname = usePathname()
     const notAllowedIn = ["/login", "/login/googleAuth"]
     const dispatch = useAppDispatch()
-    const currentWorkspace = useAppSelector(state => state.currentWorkspace)
+    const currentWorkspace = useAppSelector(state => state.currentWorkspace.id ? state.currentWorkspace : null)
     const sidebarState = useAppSelector(state => state.sidebar.value)
     const [displayComponents, setDisplayComponents] = useState({
         workspaces: false,
@@ -87,6 +96,10 @@ const Sidebar = () => {
         return () => document.removeEventListener("click", handleClick);
     }, [])
 
+    useEffect(() => {
+        console.log("CURENT", currentWorkspace)
+    }, [currentWorkspace])
+
 
     const toggleComponent = (name: string) => {
         const newState = {
@@ -99,7 +112,7 @@ const Sidebar = () => {
     }
 
 
-    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname) || currentWorkspace.id === 0)
+    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
         return null;
     if (!sidebarState)
         return <div className="w-4 h-[calc(100vh-48px)] absolute top-12 p-3 px-0 hidden sm:block border bg-gray-200">
@@ -112,24 +125,27 @@ const Sidebar = () => {
     return (
         <div className="w-64 h-[calc(100vh-48px)] absolute top-12 hidden sm:block border">
             <div className="w-full py-2 px-3 flex justify-between items-center border-b">
-                <div className="flex items-center max-w-[80%] break-words gap-2">
-                    <div className="w-8 h-8 bg-blue-500 flex items-center justify-center text-xl font-semibold capitalize rounded text-white">
-                        {currentWorkspace.name.charAt(0)}
+                {
+                    currentWorkspace &&
+                    <div className="flex items-center max-w-[80%] break-words gap-2">
+                        <div className="min-w-8 min-h-8 bg-blue-500 flex items-center justify-center text-xl font-semibold capitalize rounded text-white">
+                            {currentWorkspace?.name.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                            <p className="capitalize text-sm font-semibold truncate w-36">
+                                {currentWorkspace?.name} workspace
+                            </p>
+                            <span className="text-xs font-normal ">
+                                Free
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex flex-col">
-                        <p className="capitalize text-sm font-semibold ">
-                            {currentWorkspace.name} workspace
-                        </p>
-                        <span className="text-xs font-normal ">
-                            Free
-                        </span>
-                    </div>
-                </div>
+                }
                 {
                     sidebarState &&
                     <div
                         onClick={() => dispatch(hide())}
-                        className="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center cursor-pointer">
+                        className="w-8 h-8 hover:bg-gray-100 ml-auto rounded flex items-center justify-center cursor-pointer">
                         <FaChevronLeft className="w-3 h-3" />
                     </div>
                 }

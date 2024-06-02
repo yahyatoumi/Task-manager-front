@@ -3,7 +3,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { HiOutlineChevronRight } from "react-icons/hi";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { FaRegStar, FaStar } from "react-icons/fa6";
-import { makeWorkspaceFavorite, makeWorkspaceNotFavorite } from "@/api/RequestInHeader";
+import { makeWorkspaceFavorite, makeWorkspaceNotFavorite } from "@/api/workspaceRequests";
 import { toast } from "react-toastify";
 import { setWorkspaces } from "@/lib/workspaces/workspacesSlice";
 import { WorkspaceCardWithStar } from "./HeaderRecent";
