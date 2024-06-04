@@ -18,6 +18,7 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice";
 import { useQuery } from "@tanstack/react-query";
 import { getAllWorkspaces } from "@/api/workspaceRequests";
+import { PiKanbanDuotone } from "react-icons/pi";
 
 interface ComponentProps {
     toggleComponent: (component: string) => void;
@@ -48,8 +49,8 @@ const WorkspacesComponent: FC<ComponentProps> = ({ toggleComponent }) => {
             </div>
         }
         {
-            workspaces?.data.filter((workspace: WorkspaceType) => workspace.id !== currentWorkspace?.id).map((workspace: WorkspaceType) => <div
-                onClick={() => dispatch(setCurrentWorkspace(workspace))}
+            workspaces?.data.filter((workspace: WorkspaceType) => workspace.id !== currentWorkspace?.id).map((workspace: WorkspaceType) => <Link
+                href={`/workspace/${workspace.id}`}
                 className="flex gap-2 items-center px-4 hover:bg-gray-100 py-2"
             >
                 <div className="w-8 h-8 flex items-center justify-center rounded bg-blue-500 text-white text-xl font-semibold capitalize">
@@ -58,7 +59,7 @@ const WorkspacesComponent: FC<ComponentProps> = ({ toggleComponent }) => {
                 <p>
                     {workspace.name}
                 </p>
-            </div>)
+            </Link>)
         }
     </div>
 }
@@ -75,6 +76,7 @@ const Sidebar = () => {
         settings: false
     })
     const optionsRef = useRef<HTMLDivElement | null>(null);
+    const pathName = usePathname()
 
     const handleClick = (e: MouseEvent) => {
         const clickedElement = e.target as Node;
@@ -111,8 +113,16 @@ const Sidebar = () => {
         setDisplayComponents(newState)
     }
 
+    let lastpathName: string[] | string = pathname.split("/")
+    lastpathName = lastpathName[lastpathName.length - 1]
 
-    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
+    useEffect(() => {
+        console.log("pathName", pathName, lastpathName)
+    }, [pathName])
+
+
+
+    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname) || !currentWorkspace?.id)
         return null;
     if (!sidebarState)
         return <div className="w-4 h-[calc(100vh-48px)] absolute top-12 p-3 px-0 hidden sm:block border bg-gray-200">
@@ -154,26 +164,22 @@ const Sidebar = () => {
                 ref={optionsRef}
                 className="flex flex-col my-4">
                 <div className="relative text-sm font-medium cursor-pointer w-full gap-2">
-                    <div
-                        onClick={() => toggleComponent("workspaces")}
-                        className="flex items-center justify-between hover:bg-gray-100 px-4 py-2"
+                    <Link
+                        href={`/workspace/${currentWorkspace?.id}`}
+                        className={`flex items-center justify-between ${lastpathName !== "settings" && lastpathName !== "members"  ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2`}
                     >
                         <div className="flex items-center gap-2">
-                            <MdOutlineWorkspaces />
+                            <PiKanbanDuotone />
                             <span>
-                                Workspaces
+                                Boards
                             </span>
                         </div>
-                        <div className="w-6 h-6 flex items-center justify-center rotate-180">
-                            <FaChevronLeft className="w-3 h-3" />
-                        </div>
-                    </div>
-                    {displayComponents.workspaces && <WorkspacesComponent toggleComponent={toggleComponent} />}
+                    </Link>
                 </div>
                 <div className="text-sm font-medium cursor-pointer w-full gap-2">
-                    <div
-                        onClick={() => toggleComponent("members")}
-                        className="flex items-center justify-between hover:bg-gray-100 px-4 py-2 "
+                    <Link
+                        href={`/workspace/${currentWorkspace?.id}/members`}
+                        className={`flex items-center justify-between ${lastpathName === "members" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2 `}
                     >
                         <div className="flex items-center gap-2">
                             <RiGroupLine />
@@ -184,11 +190,12 @@ const Sidebar = () => {
                         <div className="w-6 h-6 flex items-center justify-center rotate-180">
                             <FaChevronLeft className="w-3 h-3" />
                         </div>
-                    </div>
+                    </Link>
                 </div>
-                <div className="text-sm font-medium cursor-pointer w-full gap-2">
-                    <div className="flex items-center justify-between hover:bg-gray-100 px-4 py-2 ">
-
+                <Link
+                    href={`/workspace/${currentWorkspace?.id}/settings`}
+                    className="text-sm font-medium cursor-pointer w-full gap-2">
+                    <div className={`flex items-center justify-between ${lastpathName === "settings" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2 `}>
                         <div className="flex items-center gap-2">
                             <IoSettingsOutline />
                             <span>
@@ -199,7 +206,7 @@ const Sidebar = () => {
                             <FaChevronLeft className="w-3 h-3" />
                         </div>
                     </div>
-                </div>
+                </Link>
             </div>
         </div>
     );

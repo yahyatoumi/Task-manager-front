@@ -10,6 +10,7 @@ const initialState: WorkspaceType  = {
         id: 0,
         username: "",
     },
+    members: [],
     is_favorite: false
 };
 

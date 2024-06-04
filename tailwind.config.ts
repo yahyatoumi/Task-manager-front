@@ -15,6 +15,7 @@ const config: Config = {
       },
     },
     colors: {
+      "focus": "rgba(38,132,255)",
       "black": "#000000",
       "primary": "#006fd9",
       'primary-dark': '#0056b3', // Darker shade of primary color

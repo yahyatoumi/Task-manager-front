@@ -6,5 +6,6 @@ interface WorkspaceType{
         id: number;
         username: string;
     };
+    members?: any[];
     is_favorite: boolean
 }

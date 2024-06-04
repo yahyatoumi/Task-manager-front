@@ -6,6 +6,7 @@ import { getAllWorkspaces, makeWorkspaceFavorite, makeWorkspaceNotFavorite } fro
 import { toast } from "react-toastify";
 import { setWorkspaces } from "@/lib/workspaces/workspacesSlice";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 
 interface WorkspaceCardProps {
     workspace: WorkspaceType
@@ -51,7 +52,7 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
         }
     }
 
-    return <div className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+    return <Link href={`/workspace/${workspace.id}`} className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
         <div className="h-8 w-10 rounded flex items-center justify-center text-xl font-semibold capitalize text-white" style={{ backgroundColor: workspace?.color }}>
             {workspace.name.charAt(0)}
         </div>
@@ -77,7 +78,7 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
                 />
             }
         </div>
-    </div>
+    </Link>
 }
 
 interface ComponentProps {

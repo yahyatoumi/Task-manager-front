@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, FC } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { WorkspaceCardWithStar } from "./HeaderRecent";
 import { useAppSelector } from "@/lib/hooks";
+import Link from "next/link";
 
 interface ComponentProps {
     display: boolean;
