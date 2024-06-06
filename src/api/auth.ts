@@ -24,3 +24,13 @@ export const authWithGoogle = async () => {
         return e;
     })
 }
+
+export const getSockUuid = async () => {
+    return getAPI("auth_for_ws_connection/").then((res: any) => {
+        console.log("resss", res)
+        return res;
+    }).catch((e: any) => {
+        console.error("request error", e)
+        return e;
+    })
+}

@@ -12,7 +12,7 @@ interface WorkspaceCardProps {
 }
 
 const WorkspaceCard: FC<WorkspaceCardProps> = ({ workspace }) => {
-    return <Link href={`/workspace/${workspace.id}`} className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+    return <Link onClick={() => localStorage.setItem("currentWorkspace", workspace?.id?.toString())} href={`/workspace/${workspace.id}`} className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
         <div className="h-10 w-10 rounded flex items-center justify-center" style={{ backgroundColor: workspace?.color }}>
             <span className="uppercase text-white">{workspace?.name?.slice(0, 1)}</span>
         </div>

@@ -15,7 +15,6 @@ const withAuth = (WrappedComponent: any) => {
     
     const AuthComponent = (props: any) => {
         const router = useRouter()
-        const currentWorkspace = useAppSelector(state => state.currentWorkspace)
     
         const accessToken = getAccessToken();
         if (!accessToken) {
@@ -23,13 +22,10 @@ const withAuth = (WrappedComponent: any) => {
             router.push("/login")
             return null;
         }
-
-        const currentWorkspaceId = localStorage.getItem("currentWorkspaceId") 
-        if (currentWorkspaceId && !currentWorkspace?.id) {
-            router.push(`/workspace/${currentWorkspaceId}`)
+        const currentWorkspace = localStorage.getItem("currentWorkspace")
+        if (!currentWorkspace){
+            router.push("/")
         }
-
-
         return <WrappedComponent {...props} />;
     };
 

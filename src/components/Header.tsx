@@ -35,10 +35,10 @@ const PopUpsComponent = () => {
 
     const toggleSingleTab = (tab: string) => {
         const newState = {
-            more:  tab === "more" && !displayPopup.more,
-            rooms:  tab === "rooms" && !displayPopup.rooms,
-            recent:  tab === "recent" && !displayPopup.recent,
-            stared:  tab === "stared" && !displayPopup.stared
+            more: tab === "more" && !displayPopup.more,
+            rooms: tab === "rooms" && !displayPopup.rooms,
+            recent: tab === "recent" && !displayPopup.recent,
+            stared: tab === "stared" && !displayPopup.stared
         }
         setDisplayPopup(newState);
     }
@@ -46,16 +46,16 @@ const PopUpsComponent = () => {
 
     return <>
         <li className="cursor-pointer block sm:hidden">
-            <HeaderMore display={displayPopup.more} toggleSingleTab={toggleSingleTab} closeAll={closeAll}/>
+            <HeaderMore display={displayPopup.more} toggleSingleTab={toggleSingleTab} closeAll={closeAll} />
         </li>
         <li className="cursor-pointer">
             <HeaderRooms display={displayPopup.rooms} toggleSingleTab={toggleSingleTab} closeAll={closeAll} />
         </li>
         <li className="cursor-pointer">
-            <HeaderRecent display={displayPopup.recent} toggleSingleTab={toggleSingleTab} closeAll={closeAll}/>
+            <HeaderRecent display={displayPopup.recent} toggleSingleTab={toggleSingleTab} closeAll={closeAll} />
         </li>
         <li className="cursor-pointer">
-            <HeaderStared display={displayPopup.stared} toggleSingleTab={toggleSingleTab} closeAll={closeAll}/>
+            <HeaderStared display={displayPopup.stared} toggleSingleTab={toggleSingleTab} closeAll={closeAll} />
         </li>
     </>
 }
@@ -88,45 +88,43 @@ const Header = () => {
     if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
         return null;
     return (
-        <>
-            <div className="w-full h-12 sticky top-0 border-b">
-                <div className="mx-auto px-2  lg:px-12 h-full">
-                    <div className="flex justify-between items-center h-full">
-                        <ul className="flex gap-1 items-center font-medium text-sm">
-                            <li className="cursor-pointer hover:bg-gray-200 flex items-center gap-2 px-1 sm:px-3 py-1.5 rounded">
-                                <Image src={logo} alt="Logo" className="relative w-6 h-6" />
-                                <span className="font-bold text-md">Taskello</span>
-                            </li>
-                            <PopUpsComponent />
-                            <li className="cursor-pointer">
-                                <button onClick={() => dispatch(display())} className="bg-primary hover:bg-primary-dark text-white sm:px-4 sm:py-1.5 rounded">
-                                    <span className="hidden sm:block">
-                                        Create
-                                    </span>
-                                    <div className="sm:hidden w-8 h-8 flex items-center justify-center">
-                                        <BiPlus className="w-5 h-5" />
-                                    </div>
-                                </button>
-                            </li>
-                        </ul>
-                        <ul className="flex gap-x-2 sm:gap-x-6 text-white items-center">
-                            <li className="cursor-pointer">
-                                <IoInvertMode className="w-6 h-6 text-text" />
-                            </li>
-                            <li className="relative cursor-pointer">
-                                <IoNotificationsOutline className="w-6 h-6 text-text" />
-                                <div className="absolute -top-1 -right-1 text-xs bg-error text-white w-4 h-4 flex justify-center items-center rounded-full">
-                                    <span>2</span>
+        <header className="w-full h-12 z-10 sticky top-0 border-b">
+            <div className="mx-auto px-2  lg:px-12 h-full">
+                <div className="flex justify-between items-center h-full">
+                    <ul className="flex gap-1 items-center font-medium text-sm">
+                        <li className="cursor-pointer hover:bg-gray-200 flex items-center gap-2 px-1 sm:px-3 py-1.5 rounded">
+                            <Image src={logo} alt="Logo" className="relative w-6 h-6" />
+                            <span className="font-bold text-md">Taskello</span>
+                        </li>
+                        <PopUpsComponent />
+                        <li className="cursor-pointer">
+                            <button onClick={() => dispatch(display())} className="bg-primary hover:bg-primary-dark text-white sm:px-4 sm:py-1.5 rounded">
+                                <span className="hidden sm:block">
+                                    Create
+                                </span>
+                                <div className="sm:hidden w-8 h-8 flex items-center justify-center">
+                                    <BiPlus className="w-5 h-5" />
                                 </div>
-                            </li>
-                            <li className=" cursor-pointer">
-                                <img src='https://cdn.intra.42.fr/users/c4a7a6c32f60b4dac15f2f7eaa128a5c/ytoumi.jpg' alt="Logo" className="relative w-8 min-w-8 h-8 rounded-full" />
-                            </li>
-                        </ul>
-                    </div>
+                            </button>
+                        </li>
+                    </ul>
+                    <ul className="flex gap-x-2 sm:gap-x-6 text-white items-center">
+                        <li className="cursor-pointer">
+                            <IoInvertMode className="w-6 h-6 text-text" />
+                        </li>
+                        <li className="relative cursor-pointer">
+                            <IoNotificationsOutline className="w-6 h-6 text-text" />
+                            <div className="absolute -top-1 -right-1 text-xs bg-error text-white w-4 h-4 flex justify-center items-center rounded-full">
+                                <span>2</span>
+                            </div>
+                        </li>
+                        <li className=" cursor-pointer">
+                            <img src='https://cdn.intra.42.fr/users/c4a7a6c32f60b4dac15f2f7eaa128a5c/ytoumi.jpg' alt="Logo" className="relative w-8 min-w-8 h-8 rounded-full" />
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </>
+        </header>
     );
 };
 

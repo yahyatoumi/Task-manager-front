@@ -23,6 +23,17 @@ export const getSingleWorkspace = async (id: string) => {
     })
 }
 
+export const getSingleProject = async (id: string) => {
+    return getAPI(`project/${id}/`).then((res: any) => {
+        console.log("Single Project fetched", res)
+        return res
+    }).catch((e: any) => {
+        console.error("project fetch error", e)
+        toast.error("Oops, error geting single project!")
+        throw e
+    })
+}
+
 export const makeWorkspaceFavorite = async (workspaceId: number) => {
     console.log("makeWorkspaceFavorite")
     return putAPI("makeRoomFavorite", { room_id: workspaceId }).then((res: any) => {

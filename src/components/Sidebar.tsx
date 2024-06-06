@@ -17,50 +17,41 @@ import { HiPlus } from "react-icons/hi";
 import { IoSettingsOutline } from "react-icons/io5";
 import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice";
 import { useQuery } from "@tanstack/react-query";
-import { getAllWorkspaces } from "@/api/workspaceRequests";
+import { getAllWorkspaces, getSingleWorkspace } from "@/api/workspaceRequests";
 import { PiKanbanDuotone } from "react-icons/pi";
+import withAuth from "@/api/withAuth";
 
-interface ComponentProps {
-    toggleComponent: (component: string) => void;
+interface BoardsPartProps {
+    projects: Project[]
 }
 
-const WorkspacesComponent: FC<ComponentProps> = ({ toggleComponent }) => {
-    const { data: workspaces, isLoading } = useQuery({
-        queryKey: ["workspaces"],
-        queryFn: getAllWorkspaces
-    })
-    const currentWorkspace = useAppSelector(state => (state.currentWorkspace.id ? state.currentWorkspace : null))
-    const dispatch = useAppDispatch();
+const BoardsPart: FC<BoardsPartProps> = ({ projects }) => {
+    const pathname = usePathname()
+    const [currentBoardId, setCurrentBoardId] = useState<number | null>()
+
+    useEffect(() => {
+        const splitted = pathname.split("/")
+        if (splitted.length > 2 && splitted[splitted.length - 2] === 'board') {
+            console.log("border is", splitted, Number(splitted[splitted.length - 1]))
+            setCurrentBoardId(Number(splitted[splitted.length - 1]))
+        }
+    }, [pathname])
 
 
-    return <div className="absolute z-10 left-[calc(100%-48px)] top-full w-80 bg-background rounded-lg shadow-lg flex flex-col py-2">
-        {
-            currentWorkspace &&
-            <div className="border-b w-full mb-2">
-                <p className="text-xs px-4">Current Workspace</p>
-                <div className='flex gap-2 items-center px-4 hover:bg-gray-100 py-2'>
-                    <div className="w-8 h-8 flex items-center justify-center rounded bg-blue-500 text-white text-xl font-semibold capitalize">
-                        {currentWorkspace?.name.charAt(0)}
-                    </div>
-                    <p>
-                        {currentWorkspace?.name}
-                    </p>
-                </div>
-            </div>
-        }
-        {
-            workspaces?.data.filter((workspace: WorkspaceType) => workspace.id !== currentWorkspace?.id).map((workspace: WorkspaceType) => <Link
-                href={`/workspace/${workspace.id}`}
-                className="flex gap-2 items-center px-4 hover:bg-gray-100 py-2"
-            >
-                <div className="w-8 h-8 flex items-center justify-center rounded bg-blue-500 text-white text-xl font-semibold capitalize">
-                    {workspace.name.charAt(0)}
-                </div>
-                <p>
-                    {workspace.name}
-                </p>
-            </Link>)
-        }
+    return <div className="w-full">
+        <div className="w-full flex justify-between">
+            <span className="text-xs font-bold">Your boards</span>
+            <span>+</span>
+        </div>
+        <div className="w-full flex flex-col">
+            {
+                projects?.map((project) => <Link
+                    href={`/board/${project.id}`}
+                    className={`w-full py-2 px-4 hover:bg-gray-100 ${currentBoardId === project.id && "bg-gray-200"}`}>
+                    {project.name}
+                </Link>)
+            }
+        </div>
     </div>
 }
 
@@ -68,7 +59,11 @@ const Sidebar = () => {
     const pathname = usePathname()
     const notAllowedIn = ["/login", "/login/googleAuth"]
     const dispatch = useAppDispatch()
-    const currentWorkspace = useAppSelector(state => state.currentWorkspace.id ? state.currentWorkspace : null)
+    const [currentWorkspaceId, setCurrentWorkspace] = useState(localStorage.getItem("currentWorkspace"))
+    const { data: currentWorkspace } = useQuery({
+        queryKey: ["workspace", localStorage.getItem("currentWorkspace")],
+        queryFn: () => getSingleWorkspace(currentWorkspaceId!)
+    })
     const sidebarState = useAppSelector(state => state.sidebar.value)
     const [displayComponents, setDisplayComponents] = useState({
         workspaces: false,
@@ -102,27 +97,15 @@ const Sidebar = () => {
         console.log("CURENT", currentWorkspace)
     }, [currentWorkspace])
 
-
-    const toggleComponent = (name: string) => {
-        const newState = {
-            workspaces: name === "workspaces" ? !displayComponents.workspaces : false,
-            members: name === "members" ? !displayComponents.members : false,
-            settings: name === "settings" ? !displayComponents.settings : false
-        }
-        console.log("newStateee", newState);
-        setDisplayComponents(newState)
-    }
-
-    let lastpathName: string[] | string = pathname.split("/")
-    lastpathName = lastpathName[lastpathName.length - 1]
+    let splittedPath: string[] | string = pathname.split("/")
+    const lastpathName = splittedPath[splittedPath.length - 1]
 
     useEffect(() => {
-        console.log("pathName", pathName, lastpathName)
+        console.log("pathName", pathName, splittedPath)
     }, [pathName])
 
 
-
-    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname) || !currentWorkspace?.id)
+    if (notAllowedIn.includes(pathname) || (!splittedPath.includes("workspace") && !splittedPath.includes("board")) || !currentWorkspace?.data)
         return null;
     if (!sidebarState)
         return <div className="w-4 h-[calc(100vh-48px)] absolute top-12 p-3 px-0 hidden sm:block border bg-gray-200">
@@ -136,14 +119,14 @@ const Sidebar = () => {
         <div className="w-64 h-[calc(100vh-48px)] absolute top-12 hidden sm:block border">
             <div className="w-full py-2 px-3 flex justify-between items-center border-b">
                 {
-                    currentWorkspace &&
+                    currentWorkspace?.data &&
                     <div className="flex items-center max-w-[80%] break-words gap-2">
                         <div className="min-w-8 min-h-8 bg-blue-500 flex items-center justify-center text-xl font-semibold capitalize rounded text-white">
-                            {currentWorkspace?.name.charAt(0)}
+                            {currentWorkspace?.data?.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
                             <p className="capitalize text-sm font-semibold truncate w-36">
-                                {currentWorkspace?.name} workspace
+                                {currentWorkspace?.data?.name} workspace
                             </p>
                             <span className="text-xs font-normal ">
                                 Free
@@ -165,8 +148,8 @@ const Sidebar = () => {
                 className="flex flex-col my-4">
                 <div className="relative text-sm font-medium cursor-pointer w-full gap-2">
                     <Link
-                        href={`/workspace/${currentWorkspace?.id}`}
-                        className={`flex items-center justify-between ${lastpathName !== "settings" && lastpathName !== "members"  ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2`}
+                        href={`/workspace/${currentWorkspace?.data?.id}`}
+                        className={`flex items-center justify-between ${lastpathName !== "settings" && lastpathName !== "members" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2`}
                     >
                         <div className="flex items-center gap-2">
                             <PiKanbanDuotone />
@@ -178,7 +161,7 @@ const Sidebar = () => {
                 </div>
                 <div className="text-sm font-medium cursor-pointer w-full gap-2">
                     <Link
-                        href={`/workspace/${currentWorkspace?.id}/members`}
+                        href={`/workspace/${currentWorkspace?.data?.id}/members`}
                         className={`flex items-center justify-between ${lastpathName === "members" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2 `}
                     >
                         <div className="flex items-center gap-2">
@@ -193,7 +176,7 @@ const Sidebar = () => {
                     </Link>
                 </div>
                 <Link
-                    href={`/workspace/${currentWorkspace?.id}/settings`}
+                    href={`/workspace/${currentWorkspace?.data?.id}/settings`}
                     className="text-sm font-medium cursor-pointer w-full gap-2">
                     <div className={`flex items-center justify-between ${lastpathName === "settings" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2 `}>
                         <div className="flex items-center gap-2">
@@ -208,8 +191,9 @@ const Sidebar = () => {
                     </div>
                 </Link>
             </div>
+            <BoardsPart projects={currentWorkspace?.data?.projects} />
         </div>
     );
 };
 
-export default Sidebar;
+export default withAuth(Sidebar);

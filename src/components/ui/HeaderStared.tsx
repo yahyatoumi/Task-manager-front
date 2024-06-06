@@ -3,6 +3,8 @@ import { IoIosArrowDown } from "react-icons/io";
 import { WorkspaceCardWithStar } from "./HeaderRecent";
 import { useAppSelector } from "@/lib/hooks";
 import Link from "next/link";
+import { getAllWorkspaces } from "@/api/workspaceRequests";
+import { useQuery } from "@tanstack/react-query";
 
 interface ComponentProps {
     display: boolean;
@@ -13,11 +15,14 @@ interface ComponentProps {
 const HeaderStared: FC<ComponentProps> = ({ closeAll, display, toggleSingleTab }) => {
     const displayerRef = useRef<HTMLDivElement | null>(null);
     const optionsRef = useRef<HTMLDivElement | null>(null);
-    const workspaces = useAppSelector(state => state.workspaces)
     const [favoriteWorkspaces, setFavoriteWorkspaces] = useState<WorkspaceType[]>([])
+    const { data: workspaces, isLoading } = useQuery({
+        queryKey: ["workspaces"],
+        queryFn: getAllWorkspaces
+    })
 
     useEffect(() => {
-        setFavoriteWorkspaces(workspaces.filter((workspace) => workspace.is_favorite))
+        setFavoriteWorkspaces(workspaces?.data.filter((workspace: WorkspaceType) => workspace.is_favorite))
     }, [workspaces])
 
 

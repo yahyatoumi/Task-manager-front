@@ -21,11 +21,11 @@ const BoardsHeader: FC<BoardsHeaderProps> = ({ workspace }) => {
         <div className="w-full max-w-[912px] flex items-center justify-between p-8 bg-redr-50 mx-auto">
             <div className="flex gap-2.5">
                 <div className="min-w-[60px] h-[60px] rounded bg-primary text-white flex items-center justify-center text-[35px] font-bold capitalize">
-                    {workspace.name.charAt(0)}
+                    {workspace?.name.charAt(0)}
                 </div>
                 <div className="flex flex-col justify-center">
                     <div className="flex items-center gap-3">
-                        <span className="text-xl font-semibold text-text capitalize">{workspace.name}</span>
+                        <span className="text-xl font-semibold text-text capitalize">{workspace?.name}</span>
                         <GoPencil className="cursor-pointer" />
                     </div>
                     <div className="flex items-center gap-1">
@@ -223,6 +223,7 @@ function Page({ params }: { params: { slug: string } }) {
 
     useEffect(() => {
         if (data) {
+            console.log("DDDTTT", data)
             dispatch(setCurrentWorkspace(data.data))
         }
     }, [data])

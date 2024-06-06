@@ -52,7 +52,7 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
         }
     }
 
-    return <Link href={`/workspace/${workspace.id}`} className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+    return <Link onClick={() => localStorage.setItem("currentWorkspace", workspace?.id?.toString())} href={`/workspace/${workspace.id}`} className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
         <div className="h-8 w-10 rounded flex items-center justify-center text-xl font-semibold capitalize text-white" style={{ backgroundColor: workspace?.color }}>
             {workspace.name.charAt(0)}
         </div>

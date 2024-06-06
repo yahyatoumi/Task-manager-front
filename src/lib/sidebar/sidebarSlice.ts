@@ -4,10 +4,9 @@ interface sidebarType {
     value: boolean;
 }
 
-const state = localStorage.getItem('sidebar')
 
 const initialState: sidebarType = {
-    value: state !== 'hidden'
+    value: localStorage.getItem('sidebar') !== 'hidden'
 }
 
 const sidebarSlice = createSlice({
