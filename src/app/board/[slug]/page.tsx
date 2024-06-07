@@ -4,104 +4,73 @@ import { getSockUuid } from "@/api/auth";
 import withAuth from "@/api/withAuth";
 import { getSingleProject, getSingleWorkspace } from "@/api/workspaceRequests";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FC, useEffect, useState, memo } from "react";
+import { FC, useEffect, useState, memo, useRef } from "react";
 import { toast } from "react-toastify";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import reorder, { reorderQuoteMap } from "./utils";
+import {
+    draggable,
+    dropTargetForElements,
+} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 
 interface SingleSectionProps {
     section: SectionType;
-    index: number
 }
 
-const SingleTAsk = memo((props) => {
-    const { quote, isDragging, isGroupedOver, provided, style, isClone, index, task } = props;
+const SingleTAsk = (props) => {
+    const ref = useRef(null);
+    const [dragging, setDragging] = useState<boolean>(false); // NEW
+    const [isDraggedOver, setIsDraggedOver] = useState(false);
+
+    useEffect(() => {
+        const el = ref.current;
+
+        const dragHandle = draggable({
+            element: el!,
+            onDragStart: () => setDragging(true), // NEW
+            onDrop: () => setDragging(false), // NEW
+        });
+
+        const dropTarget = dropTargetForElements({
+            element: el!,
+            onDragEnter: (e) => {
+                console.log("drag enter", e)
+                setIsDraggedOver(true)
+            },
+            onDragLeave: () => setIsDraggedOver(false),
+            onDrop: () => setIsDraggedOver(false),
+        });
+
+        return () => {
+            dragHandle()
+            dropTarget()
+        }
+    }, []);
 
     return (
         <div
-            isDragging={isDragging}
-            isGroupedOver={isGroupedOver}
-            isClone={isClone}
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            data-is-dragging={isDragging}
-            data-testid={task.id}
-            data-index={index}
-        >
-            <div className="w-full h-5">
-                {task?.name}
+            ref={ref}
+            className={`${isDraggedOver ? "pt-16" : "pt-2"}`}>
+            <div
+                className={`w-full h-14 ${dragging ? "opacity-10 bg-black" : "bg-white"}`}>
+                {props?.task.name}
             </div>
         </div>
     );
-})
+}
 
-const SingleSection: FC<SingleSectionProps> = ({ section, index }) => {
-    return <Draggable draggableId={section.id.toString()} index={index}>
-        {(provided, snapshot) => (
-            <div //container
-                ref={provided.innerRef} {...provided.draggableProps}
-                className="w-[272px] min-w-[272px] h-64 bg-[#f0f1f3] rounded shadow rounded-b-lg">
-                <div //header
-                    isDragging={snapshot.isDragging}
-                    className="w-full h-12">
-                    <div
-                        isDragging={snapshot.isDragging}
-                        {...provided.dragHandleProps}
-                        aria-label={`${section.name} quote list`}
-                        className="w-full h-12 bg-gray-200 rounded-t-lg">
-
-                        {section.name}
-                    </div>
-                </div>
-                <Droppable
-                    droppableId={section.id.toString()}
-                >
-                    {(dropProvided, dropSnapshot) => (
-                        <div //list wrapper
-                            {...dropProvided.droppableProps}
-                            className="w-full h-[calc(100%-48px)]"
-                        >
-                            <div
-                                //list
-                                className="w-full h-full overflow-y-scroll p-2"
-                            >
-                                <div className="">
-                                    <div ref={dropProvided.innerRef}>
-                                        {
-                                            section?.tasks.map((task) => (
-                                                <Draggable key={task.id} draggableId={task.id} index={index}>
-                                                    {(dragProvided, dragSnapshot) => (
-                                                        <div
-                                                            key={task.id}
-                                                            isDragging={dragSnapshot.isDragging}
-                                                            isGroupedOver={Boolean(dragSnapshot.combineTargetFor)}
-                                                            provided={dragProvided}
-                                                            className="w-full bg-green-900"
-                                                        >
-                                                            <SingleTAsk
-                                                                key={task.id}
-                                                                isDragging={dragSnapshot.isDragging}
-                                                                isGroupedOver={Boolean(dragSnapshot.combineTargetFor)}
-                                                                provided={dragProvided}
-                                                                task={task} />
-                                                        </div>
-                                                    )}
-                                                </Draggable>
-                                            ))
-                                        }
-                                        {dropProvided.placeholder}
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-                    )}
-                </Droppable>
-            </div>
-        )}
-    </Draggable>
+const SingleSection: FC<SingleSectionProps> = ({ section }) => {
+    return <div //container
+        className="w-[272px] min-w-[272px] h-64 bg-[#f0f1f3] rounded shadow rounded-b-lg">
+        <div className="w-full h-12 bg-green-100">
+            {section.name}
+        </div>
+        {
+            section?.tasks.map((task, index) => (
+                <SingleTAsk key={task.id} task={task} />
+            ))
+        }
+    </div>
 }
 
 
@@ -186,30 +155,18 @@ const Sections: FC<SectionsProps> = ({ boardId }) => {
         setColumns(newData.quoteMap);
     };
 
-    return data && <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable
-            droppableId="board"
-            type="COLUMN"
-            direction="horizontal"
-        >
-            {(provided, snapshot) => (
-                <div
-                    ref={provided.innerRef} {...provided.droppableProps}
-                    className="w-full h-full flex gap-2 p-4">
-                    {
-                        ordered?.map((key: string, index: number) => (
-                            <SingleSection
-                                dragginSection={snapshot.isDragging}
-                                key={key}
-                                index={index}
-                                section={data.data.sections.find((section: SectionType) => section.id.toString() === key)} />)
-                        )
-                    }
-                    {provided.placeholder}
-                </div>
-            )}
-        </Droppable>
-    </DragDropContext>
+    return data && <div>
+        <div
+            className="w-full h-full flex gap-2 p-4">
+            {
+                data.data.sections?.map((section: SectionType, index: number) => (
+                    <SingleSection
+                        key={section.id}
+                        section={section} />)
+                )
+            }
+        </div>
+    </div>
 }
 
 function Page({ params }: { params: { slug: string } }) {
