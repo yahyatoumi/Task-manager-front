@@ -31,29 +31,35 @@ import invariant from "tiny-invariant";
 
 interface SingleSectionProps {
     section: SectionType;
+    socket: WebSocket | null;
 
 }
 
 interface SingleTaskProps {
     task: TaskType;
     prevSiblingId: number;
+    socket: WebSocket | null;
 }
 
-const CutsomCardDropIndicator = ({ edge, gap }) => {
+const CutsomCardDropIndicator = ({ edge, gap, height }) => {
 
     return <div
-        className="w-full h-14 absolute left-0 right-0 bg-black"
+        className="w-full absolute left-0 right-0 bg-gray-200 rounded-xl"
         style={{
             [edge]: `-${gap}`,
+            height: height || "56px"
         }} ></div>;
 };
 
-const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId }) => {
+const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId, socket }) => {
     console.log("RORORORORORRO", task)
     const ref = useRef(null);
     const [dragging, setDragging] = useState<boolean>(false); // NEW
     const [isDraggedOver, setIsDraggedOver] = useState(false);
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+    const taskDivRef = useRef<HTMLDivElement | null>(null);
+    const [taskDivHeight, setTaskDivHeight] = useState<number>(0);
+
 
     useEffect(() => {
         const el = ref.current;
@@ -121,6 +127,13 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId }) => {
         }
     }, [closestEdge])
 
+    useEffect(() => {
+        if (taskDivRef.current) {
+            setTaskDivHeight(taskDivRef.current.clientHeight);
+            console.log("HHHEIGHT", taskDivRef.current.clientHeight)
+        }
+    }, [task])
+
     return (
         <div
             ref={ref}
@@ -128,10 +141,11 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId }) => {
         >
             <div
                 style={{
-                    marginTop: closestEdge && closestEdge === "top" ? "64px" : "",
-                    marginBottom: closestEdge && closestEdge === "bottom" ? "64px" : "",
+                    marginTop: closestEdge && closestEdge === "top" ? `${taskDivHeight + 8}px` : "",
+                    marginBottom: closestEdge && closestEdge === "bottom" ? `${taskDivHeight + 8}px` : "",
                     boxShadow: "0px 1px 1px #091e4240, 0px 0px 1px #091e424f",
                 }}
+                ref={taskDivRef}
                 className={`w-full rounded-lg px-3 pt-2 pb-1 bg-white ${dragging ? "hidden" : ""}`}>
                 <span className="mb-1 w-full break-words">
                     {task.name}
@@ -140,18 +154,28 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId }) => {
             {
                 dragging && <div className="w-full flex justify-center py-2">Prev position</div>
             }
-            {closestEdge && <CutsomCardDropIndicator edge={closestEdge} gap={`${0}px`} />}
+            {closestEdge && <CutsomCardDropIndicator edge={closestEdge} gap={`${0}px`} height={taskDivHeight} />}
         </div>
     );
 })
 
-const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput }) => {
+const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput, socket }) => {
 
-    return <div className={`w-full p-2 ${displayNewTaskInput ? "h-[100px] min-h-[100px]" : "h-11"}`}>
+    const handleSend = () => {
+        socket?.send(JSON.stringify({ type: "new_task", data: "hororororo" }))
+        console.log("send")
+    }
+
+    return <div className={`w-full p-2 ${displayNewTaskInput ? "min-h-[100px]" : "h-11"}`}>
         {
             displayNewTaskInput ? <div
                 onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
-                className="bg-green-300">close</div>
+                className="bg-green-300">
+                <span>close</span>
+                <span
+                    onClick={handleSend}
+                >send</span>
+            </div>
                 :
                 <div
                     onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
@@ -163,7 +187,7 @@ const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput }) => {
     </div>
 }
 
-const SingleSection: FC<SingleSectionProps> = memo(({ section }) => {
+const SingleSection: FC<SingleSectionProps> = memo(({ section, socket }) => {
     console.log("sectionnnnnn", section)
     const columnId = section?.columnId;
     const columnRef = useRef<HTMLDivElement | null>(null);
@@ -174,6 +198,7 @@ const SingleSection: FC<SingleSectionProps> = memo(({ section }) => {
     const [hoverOnList, setHoverOnList] = useState<boolean>(false);
     const [isDragging, setIsDragging] = useState<boolean>(false);
     const [displayNewTaskInput, setDisplayNewTaskInput] = useState<boolean>(false);
+
 
     useEffect(() => {
 
@@ -256,40 +281,24 @@ const SingleSection: FC<SingleSectionProps> = memo(({ section }) => {
                         <SingleTAsk key={task.itemId} task={task} prevSiblingId={index > 0 ? section?.items[index - 1].id : 0} />
                     ))
                 }
-                {
-                    section?.items.map((task, index) => (
-                        <SingleTAsk key={task.itemId} task={task} prevSiblingId={index > 0 ? section?.items[index - 1].id : 0} />
-                    ))
-                }
-                {
-                    section?.items.map((task, index) => (
-                        <SingleTAsk key={task.itemId} task={task} prevSiblingId={index > 0 ? section?.items[index - 1].id : 0} />
-                    ))
-                }
-                {
-                    section?.items.map((task, index) => (
-                        <SingleTAsk key={task.itemId} task={task} prevSiblingId={index > 0 ? section?.items[index - 1].id : 0} />
-                    ))
-                }
             </div>
             <div className="px-3">
                 {closestEdge && (
                     <DropIndicator edge={closestEdge} gap={`${8}px`} />
                 )}
             </div>
-            <NewTaskInput setDisplayNewTaskInput={setDisplayNewTaskInput} displayNewTaskInput={displayNewTaskInput} />
+            <NewTaskInput setDisplayNewTaskInput={setDisplayNewTaskInput} displayNewTaskInput={displayNewTaskInput} socket={socket} />
         </div>
-
-
     </div>
 })
 
 
 interface SectionsProps {
-    boardId: string
+    boardId: string,
+    socket: WebSocket | null;
 }
 
-const Sections: FC<SectionsProps> = memo(({ boardId }) => {
+const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
     const { data: queryData } = useQuery({
         queryKey: ["project", boardId],
         queryFn: () => getSingleProject(boardId)
@@ -351,6 +360,13 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
         }
     }, [queryData])
 
+    const reorderSender = (data: any) => {
+        const columns = data.orderedColumnIds;
+        const sections = data.columnMap;
+
+        console.log("will send", columns, sections)
+    }
+
     useEffect(() => {
         invariant(ref.current);
         return combine(
@@ -410,15 +426,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
                             closestEdgeOfTarget,
                             axis: "horizontal"
                         });
-
-                        console.log("reordering column", {
-                            startIndex,
-                            destinationIndex: updated.findIndex(
-                                (columnId) => columnId === target.data.columnId
-                            ),
-                            closestEdgeOfTarget
-                        });
-
+                        console.log("reordering column", data, { ...data, orderedColumnIds: updated })
+                        reorderSender({ ...data, orderedColumnIds: updated });
                         setData({ ...data, orderedColumnIds: updated });
                     }
                     // Dragging a card
@@ -448,7 +457,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
                             const destinationColumn = data.columnMap[destinationId];
                             invariant(destinationColumn);
 
-                            // reordering in same column
+                            // reorderinngg in same column
                             if (sourceColumn === destinationColumn) {
                                 const updated = reorderWithEdge({
                                     list: sourceColumn.items,
@@ -464,6 +473,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
                                         items: updated
                                     }
                                 };
+                                console.log("reordering", data, {...data, columnMap: updatedMap});
+                                reorderSender({ ...data, columnMap: updatedMap });
                                 setData({ ...data, columnMap: updatedMap });
                                 console.log("moving card to end position in same column", {
                                     startIndex: itemIndex,
@@ -487,7 +498,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
                                     items: [...destinationColumn.items, item]
                                 }
                             };
-
+                            console.log("reordering", data,  {...data, columnMap: updatedMap});
+                            reorderSender({ ...data, columnMap: updatedMap });
                             setData({ ...data, columnMap: updatedMap });
                             console.log("moving card to end position of another column", {
                                 startIndex: itemIndex,
@@ -544,6 +556,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
                                     ),
                                     closestEdgeOfTarget
                                 });
+                                console.log("reordering", data, {...data, columnMap: updatedMap})
+                                reorderSender({ ...data, columnMap: updatedMap });
                                 setData({ ...data, columnMap: updatedMap });
                                 return;
                             }
@@ -577,6 +591,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
                                 destinationIndex,
                                 closestEdgeOfTarget
                             });
+                            console.log("reordering", data, {...data, columnMap: updatedMap})
+                            reorderSender({ ...data, columnMap: updated });
                             setData({ ...data, columnMap: updatedMap });
                         }
                     }
@@ -600,7 +616,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId }) => {
 
             {data?.orderedColumnIds.map((columnId: string) => {
                 console.log("INDEX", columnId, data, data.columnMap[columnId])
-                return <SingleSection section={data.columnMap[columnId]} key={columnId} />;
+                return <SingleSection section={data.columnMap[columnId]} key={columnId} socket={socket} />;
             })}
 
         </div>
@@ -612,6 +628,7 @@ function Page({ params }: { params: { slug: string } }) {
         queryFn: () => getSingleProject(params.slug)
     })
     const [uuid, setUuid] = useState(localStorage.getItem("sockUuid") || "");
+    const [socket, setSocket] = useState<WebSocket | null>(null);
 
     const getNewUuid = async () => {
         if (uuid) return;
@@ -630,6 +647,7 @@ function Page({ params }: { params: { slug: string } }) {
     useEffect(() => {
         if (!uuid) return;
         const socket = new WebSocket(`ws://127.0.0.1:8000/ws/board/${params.slug}/?uuid=${uuid}`);
+        setSocket(socket);
 
         socket.onopen = () => {
             console.log("connected to", params.slug);
@@ -660,7 +678,7 @@ function Page({ params }: { params: { slug: string } }) {
 
             </div>
             <div className="h-[calc(100%-56px)] overflow-x-auto overflow-y-hidden relative">
-                <Sections boardId={params.slug} />
+                <Sections boardId={params.slug} socket={socket} />
             </div>
         </main>
     );
