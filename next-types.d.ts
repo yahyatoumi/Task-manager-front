@@ -20,7 +20,18 @@ interface WorkspaceType{
     is_favorite: boolean
 }
 
+interface TaskType{
+    id: number;
+    name: string;
+    description: string;
+    created_by: Member;
+    assignee: Member;
+    due_date: string;
+    is_completed: boolean
+}
+
 interface SectionType{
     id: number;
     name: string
+    tasks: TaskType[]
 }
