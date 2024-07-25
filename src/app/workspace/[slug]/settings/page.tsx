@@ -4,7 +4,6 @@ import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlic
 import { useAppDispatch } from "@/lib/hooks"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect } from "react"
-import withAuth from "@/api/withAuth"
 
 function Page({ params }: { params: { slug: string } }) {
 
@@ -13,4 +12,4 @@ function Page({ params }: { params: { slug: string } }) {
     </main>
 }
 
-export default withAuth(Page)
+export default Page

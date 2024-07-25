@@ -1,11 +1,12 @@
 "use client"
-import withAuth from "@/api/withAuth"
+import { creatProject, getProjectInWorkspace } from "@/api/projectRequests"
 import { getAllWorkspaces, getSingleWorkspace } from "@/api/workspaceRequests"
 import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice"
 import { useAppDispatch } from "@/lib/hooks"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
-import { FC, useEffect, useRef, useState } from "react"
+import { FC, MouseEvent, useEffect, useRef, useState } from "react"
+import { FaRegStar, FaStar } from "react-icons/fa6"
 import { FiLock, FiUserPlus } from "react-icons/fi"
 import { GoPencil } from "react-icons/go"
 import { IoMdClose } from "react-icons/io"
@@ -82,19 +83,18 @@ const SortBySelect = () => {
                 <IoChevronDown />
             </div>
             {
-                displayOptions && <div className="absolute top-[calc(100%+4px)] rounded left-0 w-full shadow overflow-hidden bg-white">
+                displayOptions && <div className="absolute top-[calc(100%+4px)] rounded left-0 w-full shadow overflow-hidden bg-white z-10">
                     {
                         sortOptions.map((option, index) => <div
                             key={index}
                             onClick={() => { setSortBy(index); setDisplayOptions(false) }}
-                            className={`w-full hover:bg-blue-100 ${index === sortBy && "text-primary bg-blue-200"} px-3 py-2 cursor-pointer`}>
+                            className={`w-full ${index === sortBy ? "text-primary bg-blue-200" : "hover:bg-blue-100"} px-3 py-2 cursor-pointer`}>
                             {option}
                         </div>)
                     }
                 </div>
             }
         </div>
-
     </div>
 }
 
@@ -113,6 +113,7 @@ const SearchInput = () => {
 
 interface NewBoardPopupProps {
     hide: () => void;
+    workspaceId: string;
 }
 
 const colors = [
@@ -123,10 +124,29 @@ const colors = [
     "#e11d48",
 ]
 
-const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide }) => {
+const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide, workspaceId }) => {
     const popupRef = useRef<HTMLDivElement>(null)
     const [selectedColor, setSelectedColor] = useState(colors[0]);
     const [titleValue, setTitleValue] = useState("")
+    const queryClient = useQueryClient();
+
+    const { mutateAsync: addProject } = useMutation({
+        mutationFn: () => creatProject({
+            room_id: workspaceId,
+            project_title: titleValue,
+            color: selectedColor,
+        }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["workspaceProjects", workspaceId] });
+        },
+    });
+
+    // const mutation = useMutation((newProject: CreateProjectDataType) => creatProject(newProject), {
+    //     onSuccess: () => {
+    //         // Invalidate or refetch the projects query to update the project list
+    //         queryClient.invalidateQueries('projects');
+    //     },
+    // });
 
     const handleClickOutside = (e: any) => {
         const clickedElement = e.target
@@ -164,11 +184,12 @@ const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide }) => {
             <div className="w-full flex gap-2 mt-1">
                 {
                     colors.map((color) => <div
+                        key={color}
                         style={{
                             backgroundColor: color
                         }}
                         onClick={() => setSelectedColor(color)}
-                        className={`w-full cursor-pointer h-8 rounded-lg ${selectedColor === color && "outline outline-4 outline-gray-200 shadow"}`}></div>)
+                        className={`w-full cursor-pointer h-8 rounded-lg ${selectedColor === color && "outline outline-4 outline-blue-500 shadow"}`}></div>)
                 }
             </div>
         </div>
@@ -181,15 +202,77 @@ const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide }) => {
                 type="text" />
         </div>
         <div className="mt-5 w-full relative">
-            <button className={`w-full h-8 flex items-center justify-center ${titleValue.trim() ? "text-white bg-primary hover:bg-primary-dark cursor-pointer" : "bg-gray-100 text-gray-200 cursor-not-allowed"}`}>
+            <button
+                onClick={() => addProject()}
+                className={`w-full h-8 flex items-center justify-center ${titleValue.trim() ? "text-white bg-primary hover:bg-primary-dark cursor-pointer" : "bg-gray-100 text-gray-200 cursor-not-allowed"}`}>
                 create
             </button>
         </div>
     </div>
 }
 
-const BoardsMain = () => {
+const ProjectCard = ({ project }) => {
+
+    const handleMakeFavorite = (e: MouseEvent<SVGElement, globalThis.MouseEvent>) => {
+        e.stopPropagation()
+        console.log("will make favorite")
+    }
+
+    return <div
+        key={project.id}
+        className="w-full md:w-1/2 lg:w-1/4 h-24 py-1 px-2">
+        <div
+            style={{
+                backgroundColor: project.color
+            }}
+            className="group h-full text-white capitalize cursor-pointer flex p-2 text-sm font-semibold rounded relative">
+            {project?.name}
+            <div
+                onClick={() => console.log("will redirect")}
+                className="absolute inset-0 bg-black bg-opacity-10 opacity-0 group-hover:opacity-100 transition-opacity duration-100 flex items-end justify-end p-2">
+                <FaRegStar
+                    onClick={(e) => handleMakeFavorite(e)}
+                    className="w-5 h-5" />
+            </div>
+        </div>
+    </div>
+}
+
+const BoardMainProjects = ({ workspaceId }: { workspaceId: string }) => {
     const [displayNewBoardPopup, setDisplayNewBoardPopup] = useState(false)
+    const { data } = useQuery({
+        queryKey: ["workspaceProjects", workspaceId],
+        queryFn: () => getProjectInWorkspace(workspaceId),
+    })
+
+    useEffect(() => {
+        console.log("dataaaa", data)
+    }, [data])
+
+
+    return <div className="w-full">
+        <div className="flex flex-wrap w-full ">
+            <div className="w-full md:w-1/2 lg:w-1/4 h-24 py-1 px-2 relative rounded">
+                <div
+                    onClick={() => setDisplayNewBoardPopup(!displayNewBoardPopup)}
+                    className="bg-gray-100 h-full hover:bg-gray-200 cursor-pointer flex items-center justify-center text-sm font-normal">
+                    create new board
+                </div>
+                {
+                    displayNewBoardPopup && <NewBoardPopup hide={() => setDisplayNewBoardPopup(false)} workspaceId={workspaceId} />
+                }
+            </div>
+            {
+                data?.data?.map(project => {
+                    return <ProjectCard project={project} />
+                })
+            }
+        </div>
+
+    </div>
+}
+
+const BoardsMain = ({ workspaceId }: { workspaceId: string }) => {
 
     return <div className="w-full max-w-[1330px] mx-auto p-8">
         <h2 className="font-semibold text-xl text-text">Boards</h2>
@@ -199,17 +282,8 @@ const BoardsMain = () => {
                 <SearchInput />
             </div>
         </div>
-        <div className="w-full flex flex-wrap gap-4 mt-6">
-            <div className="relative">
-                <div
-                    onClick={() => setDisplayNewBoardPopup(!displayNewBoardPopup)}
-                    className="w-[230px] h-24 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-center text-sm font-normal">
-                    create new board
-                </div>
-                {
-                    displayNewBoardPopup && <NewBoardPopup hide={() => setDisplayNewBoardPopup(false)} />
-                }
-            </div>
+        <div className="flex flex-wrap gap-4 mt-6 -mx-2">
+            <BoardMainProjects workspaceId={workspaceId} />
         </div>
     </div>
 }
@@ -218,7 +292,7 @@ function Page({ params }: { params: { slug: string } }) {
     const dispatch = useAppDispatch();
     const { data } = useQuery({
         queryKey: ["workspace", params.slug],
-        queryFn: () => getSingleWorkspace(params.slug)
+        queryFn: () => getSingleWorkspace(params.slug),
     })
 
     useEffect(() => {
@@ -231,8 +305,8 @@ function Page({ params }: { params: { slug: string } }) {
     return data && <main className="h-full">
         <BoardsHeader workspace={data.data} />
         <hr className="w-[95%] mx-auto" />
-        <BoardsMain />
+        <BoardsMain workspaceId={params.slug} />
     </main>
 }
 
-export default withAuth(Page)
+export default Page

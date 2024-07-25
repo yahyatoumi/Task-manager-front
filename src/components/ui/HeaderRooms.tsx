@@ -34,7 +34,7 @@ const HeaderRooms: FC<ComponentProps> = ({ display, closeAll, toggleSingleTab })
     const dispatch = useAppDispatch();
     const { data: workspaces, isLoading } = useQuery({
         queryKey: ["workspaces"],
-        queryFn: getAllWorkspaces
+        queryFn: getAllWorkspaces,
     })
     const currentWorkspace = useAppSelector(state => state.currentWorkspace.id ? state.currentWorkspace : null)
 

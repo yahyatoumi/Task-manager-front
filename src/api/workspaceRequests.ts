@@ -13,6 +13,7 @@ export const getAllWorkspaces = async () => {
 
 
 export const getSingleWorkspace = async (id: string) => {
+    if (!id) return;
     return getAPI(`room/${id}/`).then((res: any) => {
         console.log("Single Workspace fetched", res)
         return res

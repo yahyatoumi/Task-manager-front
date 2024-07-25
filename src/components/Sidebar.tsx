@@ -19,7 +19,6 @@ import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlic
 import { useQuery } from "@tanstack/react-query";
 import { getAllWorkspaces, getSingleWorkspace } from "@/api/workspaceRequests";
 import { PiKanbanDuotone } from "react-icons/pi";
-import withAuth from "@/api/withAuth";
 
 interface BoardsPartProps {
     projects: Project[]
@@ -38,17 +37,23 @@ const BoardsPart: FC<BoardsPartProps> = ({ projects }) => {
     }, [pathname])
 
 
-    return <div className="w-full">
+    return <div className="w-full px-3">
         <div className="w-full flex justify-between">
-            <span className="text-xs font-bold">Your boards</span>
-            <span>+</span>
+            <span className="text-sm font-semibold">Your boards</span>
         </div>
-        <div className="w-full flex flex-col">
+        <div className="w-full flex flex-col mt-2">
             {
                 projects?.map((project) => <Link
                     href={`/board/${project.id}`}
-                    className={`w-full py-2 px-4 hover:bg-gray-100 ${currentBoardId === project.id && "bg-gray-200"}`}>
-                    {project.name}
+                    className={`w-full flex items-center gap-2 text-sm font-normal p-2 hover:bg-gray-200 rounded ${currentBoardId === project.id && "bg-gray-200"}`}>
+                    <div 
+                    style={{
+                        backgroundColor: project.color,
+                    }}
+                    className="w-8 h-5 rounded"></div>
+                    <span className="capitalize">
+                        {project.name}
+                    </span>
                 </Link>)
             }
         </div>
@@ -59,10 +64,10 @@ const Sidebar = () => {
     const pathname = usePathname()
     const notAllowedIn = ["/login", "/login/googleAuth"]
     const dispatch = useAppDispatch()
-    const [currentWorkspaceId, setCurrentWorkspace] = useState(localStorage.getItem("currentWorkspace"))
+    const [currentWorkspaceId, setCurrentWorkspace] = useState<string | null>(null)
     const { data: currentWorkspace } = useQuery({
-        queryKey: ["workspace", localStorage.getItem("currentWorkspace")],
-        queryFn: () => getSingleWorkspace(currentWorkspaceId!)
+        queryKey: ["workspace", currentWorkspaceId],
+        queryFn: () => currentWorkspaceId && getSingleWorkspace(currentWorkspaceId),
     })
     const sidebarState = useAppSelector(state => state.sidebar.value)
     const [displayComponents, setDisplayComponents] = useState({
@@ -72,6 +77,12 @@ const Sidebar = () => {
     })
     const optionsRef = useRef<HTMLDivElement | null>(null);
     const pathName = usePathname()
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setCurrentWorkspace(localStorage.getItem("currentWorkspace"));
+        }
+    }, []);
 
     const handleClick = (e: MouseEvent) => {
         const clickedElement = e.target as Node;
@@ -196,4 +207,4 @@ const Sidebar = () => {
     );
 };
 
-export default withAuth(Sidebar);
+export default Sidebar

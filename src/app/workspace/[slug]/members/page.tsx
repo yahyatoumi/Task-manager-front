@@ -1,5 +1,4 @@
 "use client"
-import withAuth from "@/api/withAuth"
 import { getAllWorkspaces, getSingleWorkspace } from "@/api/workspaceRequests"
 import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice"
 import { useAppDispatch } from "@/lib/hooks"
@@ -13,4 +12,4 @@ function Page({ params }: { params: { slug: string } }) {
     </main>
 }
 
-export default withAuth(Page)
+export default Page

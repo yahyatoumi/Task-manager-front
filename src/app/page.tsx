@@ -1,5 +1,4 @@
 "use client"
-import withAuth from "@/api/withAuth";
 import { getAllWorkspaces } from "@/api/workspaceRequests";
 import { useAppSelector } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +8,7 @@ import { useEffect } from "react";
 const Home = () => {
   const { data: workspaces } = useQuery({
     queryKey: ["workspaces"],
-    queryFn: getAllWorkspaces
+    queryFn: getAllWorkspaces,
   })
 
 
@@ -22,4 +21,4 @@ const Home = () => {
   );
 }
 
-export default withAuth(Home)
+export default Home

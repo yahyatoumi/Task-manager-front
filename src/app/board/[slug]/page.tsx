@@ -1,7 +1,6 @@
 "use client"
 
 import { getSockUuid } from "@/api/auth";
-import withAuth from "@/api/withAuth";
 import { getSingleProject, getSingleWorkspace } from "@/api/workspaceRequests";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FC, useEffect, useState, memo, useRef } from "react";
@@ -27,6 +26,7 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import autoScroller from "@atlaskit/pragmatic-drag-and-drop-auto-scroll";
 import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
 import invariant from "tiny-invariant";
+import { createNewTask } from "@/api/taskRequests";
 
 
 interface SingleSectionProps {
@@ -159,21 +159,32 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId, socket }) =
     );
 })
 
-const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput, socket }) => {
+const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput, socket, section }) => {
 
     const handleSend = () => {
         socket?.send(JSON.stringify({ type: "new_task", data: "hororororo" }))
         console.log("send")
     }
 
+    const handleCreateNewTask = async () => {
+        console.log("sectiiiion bbb", section)
+        const res = await createNewTask({
+            name: "t" + Math.floor(Math.random()),
+            section_id: section.columnId
+        })
+        console.log("ressssx", res)
+    }
+
     return <div className={`w-full p-2 ${displayNewTaskInput ? "min-h-[100px]" : "h-11"}`}>
         {
             displayNewTaskInput ? <div
-                onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
                 className="bg-green-300">
-                <span>close</span>
                 <span
-                    onClick={handleSend}
+                    onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
+
+                >close</span>
+                <span
+                    onClick={handleCreateNewTask}
                 >send</span>
             </div>
                 :
@@ -287,7 +298,7 @@ const SingleSection: FC<SingleSectionProps> = memo(({ section, socket }) => {
                     <DropIndicator edge={closestEdge} gap={`${8}px`} />
                 )}
             </div>
-            <NewTaskInput setDisplayNewTaskInput={setDisplayNewTaskInput} displayNewTaskInput={displayNewTaskInput} socket={socket} />
+            <NewTaskInput setDisplayNewTaskInput={setDisplayNewTaskInput} displayNewTaskInput={displayNewTaskInput} socket={socket} section={section} />
         </div>
     </div>
 })
@@ -301,11 +312,9 @@ interface SectionsProps {
 const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
     const { data: queryData } = useQuery({
         queryKey: ["project", boardId],
-        queryFn: () => getSingleProject(boardId)
+        queryFn: () => getSingleProject(boardId),
     })
-    const [columns, setColumns] = useState<SectionType[]>([]);
-    const [ordered, setOrdered] = useState<string[] | null>(null);
-    const queryClient = useQueryClient()
+    // const queryClient = useQueryClient()
     const [data, setData] = useState<{
         columnMap: SectionType[];
         orderedColumnIds: string[];
@@ -343,20 +352,6 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                 columnMap: columnMap,
                 orderedColumnIds: orderedColumnIds
             })
-        }
-    }, [queryData])
-
-    useEffect(() => {
-        console.log("sectionsData", data)
-    }, [data])
-
-    useEffect(() => {
-        console.log("ZZZZZ DATA", queryData.data)
-        if (queryData) {
-            setColumns(queryData.data.sections)
-            const ordredArr = queryData?.data.sections.map((section: SectionType) => section.id.toString())
-            console.log("ZZZZZ DATA ordredArr", ordredArr)
-            setOrdered(queryData?.data.sections.map((section: SectionType) => section.id.toString()))
         }
     }, [queryData])
 
@@ -473,7 +468,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                                         items: updated
                                     }
                                 };
-                                console.log("reordering", data, {...data, columnMap: updatedMap});
+                                console.log("reordering", data, { ...data, columnMap: updatedMap });
                                 reorderSender({ ...data, columnMap: updatedMap });
                                 setData({ ...data, columnMap: updatedMap });
                                 console.log("moving card to end position in same column", {
@@ -498,7 +493,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                                     items: [...destinationColumn.items, item]
                                 }
                             };
-                            console.log("reordering", data,  {...data, columnMap: updatedMap});
+                            console.log("reordering", data, { ...data, columnMap: updatedMap });
                             reorderSender({ ...data, columnMap: updatedMap });
                             setData({ ...data, columnMap: updatedMap });
                             console.log("moving card to end position of another column", {
@@ -556,7 +551,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                                     ),
                                     closestEdgeOfTarget
                                 });
-                                console.log("reordering", data, {...data, columnMap: updatedMap})
+                                console.log("reordering", data, { ...data, columnMap: updatedMap })
                                 reorderSender({ ...data, columnMap: updatedMap });
                                 setData({ ...data, columnMap: updatedMap });
                                 return;
@@ -591,7 +586,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                                 destinationIndex,
                                 closestEdgeOfTarget
                             });
-                            console.log("reordering", data, {...data, columnMap: updatedMap})
+                            console.log("reordering", data, { ...data, columnMap: updatedMap })
                             reorderSender({ ...data, columnMap: updated });
                             setData({ ...data, columnMap: updatedMap });
                         }
@@ -625,7 +620,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
 function Page({ params }: { params: { slug: string } }) {
     const { data } = useQuery({
         queryKey: ["project", params.slug],
-        queryFn: () => getSingleProject(params.slug)
+        queryFn: () => getSingleProject(params.slug),
     })
     const [uuid, setUuid] = useState(localStorage.getItem("sockUuid") || "");
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -644,33 +639,33 @@ function Page({ params }: { params: { slug: string } }) {
         getNewUuid();
     }, [])
 
-    useEffect(() => {
-        if (!uuid) return;
-        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/board/${params.slug}/?uuid=${uuid}`);
-        setSocket(socket);
+    // useEffect(() => {
+    //     if (!uuid) return;
+    //     const socket = new WebSocket(`ws://127.0.0.1:8000/ws/board/${params.slug}/?uuid=${uuid}`);
+    //     setSocket(socket);
 
-        socket.onopen = () => {
-            console.log("connected to", params.slug);
-        };
+    //     socket.onopen = () => {
+    //         console.log("connected to", params.slug);
+    //     };
 
-        socket.onclose = () => {
-            console.log("disconnected from", params.slug);
-        };
+    //     socket.onclose = () => {
+    //         console.log("disconnected from", params.slug);
+    //     };
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log("event received:", data);
-        };
+    //     socket.onmessage = (event) => {
+    //         const data = JSON.parse(event.data);
+    //         console.log("event received:", data);
+    //     };
 
-        socket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            toast.error("WebSocket connection error");
-        };
+    //     socket.onerror = (error) => {
+    //         console.error("WebSocket error:", error);
+    //         toast.error("WebSocket connection error");
+    //     };
 
-        return () => {
-            socket.close();
-        };
-    }, [params.slug, uuid]);
+    //     return () => {
+    //         socket.close();
+    //     };
+    // }, [params.slug, uuid]);
 
     return (
         data && <main className="h-full w-full bg-green-200 p-4">
@@ -684,4 +679,4 @@ function Page({ params }: { params: { slug: string } }) {
     );
 }
 
-export default withAuth(Page);
+export default Page

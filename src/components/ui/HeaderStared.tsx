@@ -18,7 +18,7 @@ const HeaderStared: FC<ComponentProps> = ({ closeAll, display, toggleSingleTab }
     const [favoriteWorkspaces, setFavoriteWorkspaces] = useState<WorkspaceType[]>([])
     const { data: workspaces, isLoading } = useQuery({
         queryKey: ["workspaces"],
-        queryFn: getAllWorkspaces
+        queryFn: getAllWorkspaces,
     })
 
     useEffect(() => {

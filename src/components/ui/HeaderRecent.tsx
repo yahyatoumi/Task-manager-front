@@ -16,7 +16,7 @@ export const WorkspaceCardWithStar: FC<WorkspaceCardProps> = ({ workspace }) => 
     const dispatch = useAppDispatch()
     const { data: workspaces } = useQuery({
         queryKey: ["workspaces"],
-        queryFn: getAllWorkspaces
+        queryFn: getAllWorkspaces,
     })
     const queryClient = useQueryClient();
 
@@ -92,7 +92,7 @@ const HeaderRecent: FC<ComponentProps> = ({ closeAll, display, toggleSingleTab }
     const optionsRef = useRef<HTMLDivElement | null>(null);
     const { data: workspaces } = useQuery({
         queryKey: ["workspaces"],
-        queryFn: getAllWorkspaces
+        queryFn: getAllWorkspaces,
     })
 
 

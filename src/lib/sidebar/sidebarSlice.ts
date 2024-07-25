@@ -4,9 +4,10 @@ interface sidebarType {
     value: boolean;
 }
 
+const isBrowser = typeof window !== 'undefined';
 
 const initialState: sidebarType = {
-    value: localStorage.getItem('sidebar') !== 'hidden'
+    value: isBrowser ? localStorage.getItem('sidebar') !== 'hidden' : true,
 }
 
 const sidebarSlice = createSlice({

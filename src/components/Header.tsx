@@ -85,10 +85,8 @@ const Header = () => {
         }));
     };
 
-    if (!localStorage.getItem("user_token") || notAllowedIn.includes(pathname))
-        return null;
     return (
-        <header className="w-full h-12 z-10 sticky top-0 border-b">
+        <header className="w-full h-12 z-10 sticky top-0 border-b bg-white">
             <div className="mx-auto px-2  lg:px-12 h-full">
                 <div className="flex justify-between items-center h-full">
                     <ul className="flex gap-1 items-center font-medium text-sm">
