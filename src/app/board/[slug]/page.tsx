@@ -181,14 +181,14 @@ const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput, socket, sec
             name: titleRef.current?.value,
             section_id: section.columnId
         })
-        if (res && res.status === 201){
+        if (res && res.status === 201) {
             console.log("neeeerrr", res)
             const taskWithSection = {
                 section: Number(section.columnId),
                 data: (res.data)
             }
             const newSections = currentProject?.sections.map((sec: SectionType) => {
-                if (sec.id === Number(section.columnId)){
+                if (sec.id === Number(section.columnId)) {
                     return {
                         ...sec,
                         tasks: [...sec.tasks, res.data]
@@ -373,6 +373,42 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
     const [isCustomAutoScrollEnabled, setIsCustomAutoScrollEnabled] = useState(
         false
     );
+    const isInitialRender = useRef(true);
+
+    useEffect(() => {
+        console.log("ddddfadata", data)
+        if (data && socket) {
+            if (isInitialRender.current) {
+                // Skip the first render
+                isInitialRender.current = false;
+                return;
+            }
+            const sectionsIds = data.orderedColumnIds
+            const sections = Object.values(data.columnMap).map(value => {
+                return value
+            })
+            const postSections = sections.map(section => {
+                return section.items
+            })
+            const tasks = [];
+            for (let i = 0; i < postSections.length; i++) {
+                for (let j = 0; j < postSections[i].length; j++) {
+                    const task = {
+                        itemId: postSections[i][j].itemId,
+                        sectionId: sectionsIds[i],
+                        order: j
+                    }
+                    tasks.push(task)
+                }
+            }
+            console.log("ddddfadata idsss", sectionsIds, sections, tasks)
+            const postData = {
+                sectionsIds: sectionsIds,
+                tasks: tasks
+            }
+            socket?.send(JSON.stringify(postData))
+        }
+    }, [data])
 
     useEffect(() => {
         if (currentProjectState) {
@@ -692,42 +728,46 @@ function Page({ params }: { params: { slug: string } }) {
     }, [])
 
     useEffect(() => {
-        if (data?.status === 200){
+        if (data?.status === 200) {
             dispatch(setCurrentProject(data.data))
             console.log('pppprdaaa', data.data)
         }
     }, [data])
 
-    // useEffect(() => {
-    //     if (!uuid) return;
-    //     const socket = new WebSocket(`ws://127.0.0.1:8000/ws/board/${params.slug}/?uuid=${uuid}`);
-    //     setSocket(socket);
+    useEffect(() => {
+        if (!uuid) return;
+        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/board/${params.slug}/?uuid=${uuid}`);
+        setSocket(socket);
 
-    //     socket.onopen = () => {
-    //         console.log("connected to", params.slug);
-    //     };
+        socket.onopen = () => {
+            console.log("connected to", params.slug);
+        };
 
-    //     socket.onclose = () => {
-    //         console.log("disconnected from", params.slug);
-    //     };
+        socket.onclose = () => {
+            console.log("disconnected from", params.slug);
+        };
 
-    //     socket.onmessage = (event) => {
-    //         const data = JSON.parse(event.data);
-    //         console.log("event received:", data);
-    //     };
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("event received:", data);
+        };
 
-    //     socket.onerror = (error) => {
-    //         console.error("WebSocket error:", error);
-    //         toast.error("WebSocket connection error");
-    //     };
+        socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            toast.error("WebSocket connection error");
+        };
 
-    //     return () => {
-    //         socket.close();
-    //     };
-    // }, [params.slug, uuid]);
+        return () => {
+            socket.close();
+        };
+    }, [params.slug, uuid]);
 
     return (
-        currentProjectState && <main className="h-full w-full bg-green-200 p-4">
+        currentProjectState && <main
+            style={{
+                backgroundColor: currentProjectState?.color + "44"
+            }}
+            className="h-full w-full p-4">
             <div className="h-14 py-3 pl-4 pr-2.5 w-full bg-red-100">
 
             </div>
