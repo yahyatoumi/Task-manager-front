@@ -4,6 +4,7 @@ import workspacesReducer from "./workspaces/workspacesSlice"
 import workspaceModalReducer from './workspaceModal/workspaceModalSlice'
 import currentWorkspaceReducer from './currentWorkspace/currentWorkspaceSlice'
 import sidebarReducer from './sidebar/sidebarSlice'
+import currentProjectReducer from "./currentProject/currentProjectSlice"
 
 export const makeStore = () => {
   return configureStore({
@@ -12,7 +13,8 @@ export const makeStore = () => {
       workspaces: workspacesReducer,
       workspaceModal: workspaceModalReducer,
       currentWorkspace: currentWorkspaceReducer,
-      sidebar: sidebarReducer
+      sidebar: sidebarReducer,
+      currentProject: currentProjectReducer
     }
   })
 }

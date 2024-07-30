@@ -3,7 +3,7 @@
 import { getSockUuid } from "@/api/auth";
 import { getSingleProject, getSingleWorkspace } from "@/api/workspaceRequests";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FC, useEffect, useState, memo, useRef } from "react";
+import { FC, useEffect, useState, memo, useRef, FormEvent, KeyboardEvent } from "react";
 import { toast } from "react-toastify";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import reorder, { reorderQuoteMap } from "./utils";
@@ -27,6 +27,11 @@ import autoScroller from "@atlaskit/pragmatic-drag-and-drop-auto-scroll";
 import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
 import invariant from "tiny-invariant";
 import { createNewTask } from "@/api/taskRequests";
+import { BiPlus } from "react-icons/bi";
+import { IoClose } from "react-icons/io5";
+import { useDispatch } from "react-redux";
+import { addTaskToCurrentProject, setCurrentProject, updateSections } from "@/lib/currentProject/currentProjectSlice";
+import { useAppSelector } from "@/lib/hooks";
 
 
 interface SingleSectionProps {
@@ -160,38 +165,85 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId, socket }) =
 })
 
 const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput, socket, section }) => {
+    const titleRef = useRef<HTMLTextAreaElement>(null)
+    const dispatch = useDispatch()
+    const currentProject = useAppSelector(state => state.currentProject)
 
     const handleSend = () => {
         socket?.send(JSON.stringify({ type: "new_task", data: "hororororo" }))
         console.log("send")
     }
 
-    const handleCreateNewTask = async () => {
+    const handleCreateNewTask = async (e?: FormEvent<HTMLFormElement>) => {
+        e?.preventDefault()
         console.log("sectiiiion bbb", section)
         const res = await createNewTask({
-            name: "t" + Math.floor(Math.random()),
+            name: titleRef.current?.value,
             section_id: section.columnId
         })
+        if (res && res.status === 201){
+            console.log("neeeerrr", res)
+            const taskWithSection = {
+                section: Number(section.columnId),
+                data: (res.data)
+            }
+            const newSections = currentProject?.sections.map((sec: SectionType) => {
+                if (sec.id === Number(section.columnId)){
+                    return {
+                        ...sec,
+                        tasks: [...sec.tasks, res.data]
+                    }
+                }
+                return sec
+            })
+            dispatch(updateSections(newSections))
+        }
+        setDisplayNewTaskInput(false)
         console.log("ressssx", res)
+    }
+
+    const handleEnterClick = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleCreateNewTask()
+        }
     }
 
     return <div className={`w-full p-2 ${displayNewTaskInput ? "min-h-[100px]" : "h-11"}`}>
         {
-            displayNewTaskInput ? <div
-                className="bg-green-300">
-                <span
-                    onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
-
-                >close</span>
-                <span
-                    onClick={handleCreateNewTask}
-                >send</span>
-            </div>
+            displayNewTaskInput ? <form
+                onSubmit={handleCreateNewTask}
+                className="text-sm">
+                <textarea
+                    ref={titleRef}
+                    autoFocus
+                    onKeyDown={handleEnterClick}
+                    placeholder="Enter name for this card..."
+                    className="w-full resize-none rounded-lg shadow px-3 py-2 placeholder:font-normal font-medium"
+                    name=""
+                    id=""
+                    rows={1}
+                ></textarea>
+                <div className="flex items-center gap-2 mt-2">
+                    <button
+                        type="submit"
+                        className="h-8 px-3 text-white rounded bg-primary hover:bg-primary-dark"
+                    >
+                        Add Card
+                    </button>
+                    <button
+                        onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
+                        type="button"
+                        className="flex items-center justify-center w-8 h-8 hover:bg-gray-200 rounded">
+                        <IoClose className="w-5 h-5" />
+                    </button>
+                </div>
+            </form>
                 :
                 <div
                     onClick={() => setDisplayNewTaskInput(!displayNewTaskInput)}
-                    className="flex cursor-pointer items-center w-full py-2 px-3 h-8 rounded-xl hover:bg-gray-300 text-sm font-medium">
-                    <span>+</span>
+                    className="flex cursor-pointer items-center gap-2 w-full py-2 px-3 h-8 rounded-xl hover:bg-gray-300 text-sm font-medium">
+                    <BiPlus className="w-5 h-5" />
                     <span>Add a card</span>
                 </div>
         }
@@ -310,10 +362,7 @@ interface SectionsProps {
 }
 
 const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
-    const { data: queryData } = useQuery({
-        queryKey: ["project", boardId],
-        queryFn: () => getSingleProject(boardId),
-    })
+    const currentProjectState = useAppSelector(state => state.currentProject)
     // const queryClient = useQueryClient()
     const [data, setData] = useState<{
         columnMap: SectionType[];
@@ -326,8 +375,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
     );
 
     useEffect(() => {
-        if (queryData) {
-            const sections = queryData.data.sections;
+        if (currentProjectState) {
+            const sections = currentProjectState?.sections;
             const columnMap: { [key: string]: { title: string, columnId: string, items: any[] } } = {};
             const orderedColumnIds: string[] = [];
 
@@ -353,7 +402,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                 orderedColumnIds: orderedColumnIds
             })
         }
-    }, [queryData])
+    }, [currentProjectState])
 
     const reorderSender = (data: any) => {
         const columns = data.orderedColumnIds;
@@ -597,7 +646,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
     }, [data, isCustomAutoScrollEnabled]);
 
 
-    return queryData &&
+    return currentProjectState &&
         <div
             ref={ref}
             className="absolute left-0 right-0 top-0 bottom-0 flex gap-2 py-2">
@@ -624,6 +673,9 @@ function Page({ params }: { params: { slug: string } }) {
     })
     const [uuid, setUuid] = useState(localStorage.getItem("sockUuid") || "");
     const [socket, setSocket] = useState<WebSocket | null>(null);
+    const dispatch = useDispatch();
+    const currentProjectState = useAppSelector(state => state.currentProject)
+
 
     const getNewUuid = async () => {
         if (uuid) return;
@@ -638,6 +690,13 @@ function Page({ params }: { params: { slug: string } }) {
     useEffect(() => {
         getNewUuid();
     }, [])
+
+    useEffect(() => {
+        if (data?.status === 200){
+            dispatch(setCurrentProject(data.data))
+            console.log('pppprdaaa', data.data)
+        }
+    }, [data])
 
     // useEffect(() => {
     //     if (!uuid) return;
@@ -668,7 +727,7 @@ function Page({ params }: { params: { slug: string } }) {
     // }, [params.slug, uuid]);
 
     return (
-        data && <main className="h-full w-full bg-green-200 p-4">
+        currentProjectState && <main className="h-full w-full bg-green-200 p-4">
             <div className="h-14 py-3 pl-4 pr-2.5 w-full bg-red-100">
 
             </div>

@@ -8,7 +8,9 @@ interface Project{
     name: string,
     created_by: Member;
     color: string;
-    members: Member[]
+    members: Member[],
+    sections: SectionType[],
+    
 }
 
 interface WorkspaceType{

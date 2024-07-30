@@ -1,10 +1,11 @@
 "use client"
 import { creatProject, getProjectInWorkspace } from "@/api/projectRequests"
 import { getAllWorkspaces, getSingleWorkspace } from "@/api/workspaceRequests"
-import { setCurrentWorkspace } from "@/lib/currentWorkspace/currentWorkspaceSlice"
-import { useAppDispatch } from "@/lib/hooks"
+import { setCurrentWorkspace, setCurrentWorkspaceProjects } from "@/lib/currentWorkspace/currentWorkspaceSlice"
+import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { FC, MouseEvent, useEffect, useRef, useState } from "react"
 import { FaRegStar, FaStar } from "react-icons/fa6"
 import { FiLock, FiUserPlus } from "react-icons/fi"
@@ -12,6 +13,7 @@ import { GoPencil } from "react-icons/go"
 import { IoMdClose } from "react-icons/io"
 import { IoChevronDown } from "react-icons/io5"
 import { LuSearch } from "react-icons/lu"
+import { useDispatch } from "react-redux"
 
 interface BoardsHeaderProps {
     workspace: WorkspaceType
@@ -129,6 +131,7 @@ const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide, workspaceId }) => {
     const [selectedColor, setSelectedColor] = useState(colors[0]);
     const [titleValue, setTitleValue] = useState("")
     const queryClient = useQueryClient();
+    const dispatch = useDispatch()
 
     const { mutateAsync: addProject } = useMutation({
         mutationFn: () => creatProject({
@@ -136,8 +139,9 @@ const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide, workspaceId }) => {
             project_title: titleValue,
             color: selectedColor,
         }),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ["workspaceProjects", workspaceId] });
+            dispatch(setCurrentWorkspaceProjects(res?.data))
         },
     });
 
@@ -165,7 +169,7 @@ const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide, workspaceId }) => {
 
     return <div
         ref={popupRef}
-        className="absolute right-0 lg:left-[calc(100%+4px)] shadow rounded-md top-0 bg-white w-[304px] p-3">
+        className="absolute z-10 right-0 lg:left-[calc(100%+4px)] shadow rounded-md top-0 bg-white w-[304px] p-3">
         <div className="w-full flex items-center justify-center relative">
             <span className="text-sm font-semibold">Creat board</span>
             <IoMdClose
@@ -212,27 +216,31 @@ const NewBoardPopup: FC<NewBoardPopupProps> = ({ hide, workspaceId }) => {
 }
 
 const ProjectCard = ({ project }) => {
+    const router = useRouter()
+
 
     const handleMakeFavorite = (e: MouseEvent<SVGElement, globalThis.MouseEvent>) => {
-        e.stopPropagation()
-        console.log("will make favorite")
-    }
+        e.stopPropagation();
+        console.log("will make favorite");
+    };
 
-    return <div
-        key={project.id}
-        className="w-full md:w-1/2 lg:w-1/4 h-24 py-1 px-2">
+    return <div key={project.id} className="w-full md:w-1/2 lg:w-1/4 h-24 py-1 px-2">
         <div
-            style={{
-                backgroundColor: project.color
-            }}
-            className="group h-full text-white capitalize cursor-pointer flex p-2 text-sm font-semibold rounded relative">
+            style={{ backgroundColor: project.color }}
+            className="group h-full text-white capitalize cursor-pointer flex p-2 text-sm font-semibold rounded relative"
+        >
             {project?.name}
             <div
-                onClick={() => console.log("will redirect")}
-                className="absolute inset-0 bg-black bg-opacity-10 opacity-0 group-hover:opacity-100 transition-opacity duration-100 flex items-end justify-end p-2">
-                <FaRegStar
-                    onClick={(e) => handleMakeFavorite(e)}
-                    className="w-5 h-5" />
+                onClick={(e) => {
+                    if (e.target instanceof SVGElement) {
+                        e.preventDefault();
+                    } else {
+                        router.push(`/board/${project.id}`)
+                    }
+                }}
+                className="absolute inset-0 bg-black bg-opacity-10 opacity-0 group-hover:opacity-100 transition-opacity duration-100 flex items-end justify-end p-2"
+            >
+                <FaRegStar onClick={handleMakeFavorite} className="w-5 h-5" />
             </div>
         </div>
     </div>
@@ -244,10 +252,21 @@ const BoardMainProjects = ({ workspaceId }: { workspaceId: string }) => {
         queryKey: ["workspaceProjects", workspaceId],
         queryFn: () => getProjectInWorkspace(workspaceId),
     })
+    const [projects, setProjects] = useState<Project[]>([])
+    const currentWorkspaceState = useAppSelector(state => state.currentWorkspace)
+    const dispatch = useAppDispatch()
 
     useEffect(() => {
         console.log("dataaaa", data)
+        if (data) {
+            setProjects(data.data)
+
+        }
     }, [data])
+
+    useEffect(() => {
+        console.log("cuuuurrrrrt", currentWorkspaceState)
+    }, [currentWorkspaceState])
 
 
     return <div className="w-full">
@@ -263,7 +282,7 @@ const BoardMainProjects = ({ workspaceId }: { workspaceId: string }) => {
                 }
             </div>
             {
-                data?.data?.map(project => {
+                projects?.map(project => {
                     return <ProjectCard project={project} />
                 })
             }

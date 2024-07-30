@@ -22,7 +22,8 @@ const HeaderStared: FC<ComponentProps> = ({ closeAll, display, toggleSingleTab }
     })
 
     useEffect(() => {
-        setFavoriteWorkspaces(workspaces?.data.filter((workspace: WorkspaceType) => workspace.is_favorite))
+        console.log("www", workspaces)
+        setFavoriteWorkspaces(workspaces?.data?.filter((workspace: WorkspaceType) => workspace.is_favorite))
     }, [workspaces])
 
 

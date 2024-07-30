@@ -27,6 +27,7 @@ interface BoardsPartProps {
 const BoardsPart: FC<BoardsPartProps> = ({ projects }) => {
     const pathname = usePathname()
     const [currentBoardId, setCurrentBoardId] = useState<number | null>()
+    const currentWorkspaceState = useAppSelector(state => state.currentWorkspace)
 
     useEffect(() => {
         const splitted = pathname.split("/")
@@ -36,6 +37,12 @@ const BoardsPart: FC<BoardsPartProps> = ({ projects }) => {
         }
     }, [pathname])
 
+    useEffect(() => {
+
+        console.log("prrrr", currentWorkspaceState)
+    }, [currentWorkspaceState])
+
+
 
     return <div className="w-full px-3">
         <div className="w-full flex justify-between">
@@ -43,7 +50,7 @@ const BoardsPart: FC<BoardsPartProps> = ({ projects }) => {
         </div>
         <div className="w-full flex flex-col mt-2">
             {
-                projects?.map((project) => <Link
+                currentWorkspaceState?.projects?.map((project) => <Link
                     href={`/board/${project.id}`}
                     className={`w-full flex items-center gap-2 text-sm font-normal p-2 hover:bg-gray-200 rounded ${currentBoardId === project.id && "bg-gray-200"}`}>
                     <div 
@@ -64,12 +71,13 @@ const Sidebar = () => {
     const pathname = usePathname()
     const notAllowedIn = ["/login", "/login/googleAuth"]
     const dispatch = useAppDispatch()
-    const [currentWorkspaceId, setCurrentWorkspace] = useState<string | null>(null)
+    const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(null)
     const { data: currentWorkspace } = useQuery({
         queryKey: ["workspace", currentWorkspaceId],
         queryFn: () => currentWorkspaceId && getSingleWorkspace(currentWorkspaceId),
     })
     const sidebarState = useAppSelector(state => state.sidebar.value)
+    const currentWorkspaceState = useAppSelector(state => state.currentWorkspace)
     const [displayComponents, setDisplayComponents] = useState({
         workspaces: false,
         members: false,
@@ -80,9 +88,24 @@ const Sidebar = () => {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            setCurrentWorkspace(localStorage.getItem("currentWorkspace"));
+            setCurrentWorkspaceId(localStorage.getItem("currentWorkspace"));
         }
     }, []);
+
+    useEffect(() => {
+        if (!currentWorkspaceState?.id && currentWorkspace){
+            dispatch(setCurrentWorkspace(currentWorkspace.data))
+        }
+    }, [currentWorkspace])
+
+    useEffect(() => {
+        console.log("newwww state", currentWorkspaceState)
+    }, [currentWorkspaceState])
+
+
+    useEffect(() => {
+        console.log("ppprjscsss", currentWorkspaceState?.projects)
+    }, [currentWorkspaceState?.projects])
 
     const handleClick = (e: MouseEvent) => {
         const clickedElement = e.target as Node;
@@ -104,9 +127,13 @@ const Sidebar = () => {
         return () => document.removeEventListener("click", handleClick);
     }, [])
 
-    useEffect(() => {
-        console.log("CURENT", currentWorkspace)
-    }, [currentWorkspace])
+    // useEffect(() => {
+    //     console.log("CURENT", currentWorkspace)
+    //     if (currentWorkspace){
+    //         console.log("will set", currentWorkspace)
+    //         dispatch(setCurrentWorkspace(currentWorkspace.data))
+    //     }
+    // }, [currentWorkspace])
 
     let splittedPath: string[] | string = pathname.split("/")
     const lastpathName = splittedPath[splittedPath.length - 1]
@@ -116,7 +143,7 @@ const Sidebar = () => {
     }, [pathName])
 
 
-    if (notAllowedIn.includes(pathname) || (!splittedPath.includes("workspace") && !splittedPath.includes("board")) || !currentWorkspace?.data)
+    if (notAllowedIn.includes(pathname) || (!splittedPath.includes("workspace") && !splittedPath.includes("board")) || !currentWorkspaceState)
         return null;
     if (!sidebarState)
         return <div className="w-4 h-[calc(100vh-48px)] absolute top-12 p-3 px-0 hidden sm:block border bg-gray-200">
@@ -130,14 +157,14 @@ const Sidebar = () => {
         <div className="w-64 h-[calc(100vh-48px)] absolute top-12 hidden sm:block border">
             <div className="w-full py-2 px-3 flex justify-between items-center border-b">
                 {
-                    currentWorkspace?.data &&
+                    currentWorkspaceState &&
                     <div className="flex items-center max-w-[80%] break-words gap-2">
                         <div className="min-w-8 min-h-8 bg-blue-500 flex items-center justify-center text-xl font-semibold capitalize rounded text-white">
-                            {currentWorkspace?.data?.name.charAt(0)}
+                            {currentWorkspaceState?.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
                             <p className="capitalize text-sm font-semibold truncate w-36">
-                                {currentWorkspace?.data?.name} workspace
+                                {currentWorkspaceState?.name} workspace
                             </p>
                             <span className="text-xs font-normal ">
                                 Free
@@ -159,7 +186,7 @@ const Sidebar = () => {
                 className="flex flex-col my-4">
                 <div className="relative text-sm font-medium cursor-pointer w-full gap-2">
                     <Link
-                        href={`/workspace/${currentWorkspace?.data?.id}`}
+                        href={`/workspace/${currentWorkspaceState?.id}`}
                         className={`flex items-center justify-between ${lastpathName !== "settings" && lastpathName !== "members" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2`}
                     >
                         <div className="flex items-center gap-2">
@@ -172,7 +199,7 @@ const Sidebar = () => {
                 </div>
                 <div className="text-sm font-medium cursor-pointer w-full gap-2">
                     <Link
-                        href={`/workspace/${currentWorkspace?.data?.id}/members`}
+                        href={`/workspace/${currentWorkspaceState?.id}/members`}
                         className={`flex items-center justify-between ${lastpathName === "members" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2 `}
                     >
                         <div className="flex items-center gap-2">
@@ -187,7 +214,7 @@ const Sidebar = () => {
                     </Link>
                 </div>
                 <Link
-                    href={`/workspace/${currentWorkspace?.data?.id}/settings`}
+                    href={`/workspace/${currentWorkspaceState?.id}/settings`}
                     className="text-sm font-medium cursor-pointer w-full gap-2">
                     <div className={`flex items-center justify-between ${lastpathName === "settings" ? "bg-gray-200" : "hover:bg-gray-100"} px-4 py-2 `}>
                         <div className="flex items-center gap-2">
@@ -202,7 +229,7 @@ const Sidebar = () => {
                     </div>
                 </Link>
             </div>
-            <BoardsPart projects={currentWorkspace?.data?.projects} />
+            <BoardsPart projects={currentWorkspaceState?.projects} />
         </div>
     );
 };
