@@ -403,6 +403,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
             }
             console.log("ddddfadata idsss", sectionsIds, sections, tasks)
             const postData = {
+                projectId: currentProjectState?.id,
                 sectionsIds: sectionsIds,
                 tasks: tasks
             }
