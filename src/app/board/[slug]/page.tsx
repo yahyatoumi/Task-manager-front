@@ -56,7 +56,7 @@ const CutsomCardDropIndicator = ({ edge, gap, height }) => {
         }} ></div>;
 };
 
-const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId, socket }) => {
+const SingleTAsk: FC<SingleTaskProps> = memo(({ task }) => {
     console.log("RORORORORORRO", task)
     const ref = useRef(null);
     const [dragging, setDragging] = useState<boolean>(false); // NEW
@@ -99,8 +99,6 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId, socket }) =
                     });
                 },
                 onDragEnter: (args) => {
-                    console.log(typeof args.self.data.itemId, typeof prevSiblingId)
-                    console.log("drag 1 ", args, task.itemId, args.source.data.itemId, args.self.data.itemId !== prevSiblingId, prevSiblingId)
                     if (args.source.data.itemId !== task.itemId) {
                         setClosestEdge(extractClosestEdge(args.self.data));
                     } else {
@@ -108,8 +106,6 @@ const SingleTAsk: FC<SingleTaskProps> = memo(({ task, prevSiblingId, socket }) =
                     }
                 },
                 onDrag: (args) => {
-                    console.log(typeof args.self.data.itemId, typeof prevSiblingId)
-                    console.log("drag 2 ", args, task.itemId, args.source.data.itemId, args.self.data.itemId !== prevSiblingId, prevSiblingId)
                     if (args.source.data.itemId !== task.itemId) {
                         setClosestEdge(extractClosestEdge(args.self.data));
                     } else {
@@ -251,7 +247,6 @@ const NewTaskInput = ({ setDisplayNewTaskInput, displayNewTaskInput, socket, sec
 }
 
 const SingleSection: FC<SingleSectionProps> = memo(({ section, socket }) => {
-    console.log("sectionnnnnn", section)
     const columnId = section?.columnId;
     const columnRef = useRef<HTMLDivElement | null>(null);
     const headerRef = useRef<HTMLDivElement | null>(null);
@@ -320,6 +315,8 @@ const SingleSection: FC<SingleSectionProps> = memo(({ section, socket }) => {
     // w-full h-20 bg-blue-200
     // h-24 bg-yellow-200
 
+    console.log("clossss", closestEdge)
+
     return <div //container
         ref={columnRef}
         onMouseEnter={() => setHoverOnList(true)}
@@ -345,11 +342,11 @@ const SingleSection: FC<SingleSectionProps> = memo(({ section, socket }) => {
                     ))
                 }
             </div>
-            <div className="px-3">
+            {/* <div className="px-3">
                 {closestEdge && (
                     <DropIndicator edge={closestEdge} gap={`${8}px`} />
                 )}
-            </div>
+            </div> */}
             <NewTaskInput setDisplayNewTaskInput={setDisplayNewTaskInput} displayNewTaskInput={displayNewTaskInput} socket={socket} section={section} />
         </div>
     </div>
@@ -359,6 +356,40 @@ const SingleSection: FC<SingleSectionProps> = memo(({ section, socket }) => {
 interface SectionsProps {
     boardId: string,
     socket: WebSocket | null;
+}
+
+function arraysEqual(arr1: string[], arr2: number[]): boolean {
+    if (arr1.length !== arr2.length) return false;
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i].toString()) return false;
+    }
+    return true;
+}
+
+const compaireTasks = (arr1: any, arr2: any) => {
+    for (let i = 0; i < arr1.length; i++) {
+        const columnId = arr1[i].columnId
+        const currentProjectSection = arr2.find(section => section.id.toString() === columnId)
+        const items = arr1[i].items
+        const tasks = currentProjectSection.tasks
+        if (items.length !== tasks.length)
+            return false
+        console.log("checkkkkkk", columnId, currentProjectSection, items, tasks)
+    }
+    for (let i = 0; i < arr1.length; i++) {
+        const columnId = arr1[i].columnId
+        const currentProjectSection = arr2.find(section => section.id.toString() === columnId)
+        const items = arr1[i].items
+        const tasks = currentProjectSection.tasks
+        for (let j = 0; j < items.length; j++) {
+            console.log("checkkkkkinggg", items[j], tasks[j], tasks[j].id.toString() !== items[j].itemId)
+            if (tasks[j].id.toString() !== items[j].itemId) {
+                return false
+            }
+        }
+        console.log("checkkkkkk", columnId, currentProjectSection, items, tasks)
+    }
+    return true
 }
 
 const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
@@ -377,6 +408,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
 
     useEffect(() => {
         console.log("ddddfadata", data)
+        console.log("ddddfadata currentProject", currentProjectState)
         if (data && socket) {
             if (isInitialRender.current) {
                 // Skip the first render
@@ -384,6 +416,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                 return;
             }
             const sectionsIds = data.orderedColumnIds
+            const currentProjectsectionsIds = currentProjectState?.sections?.map(section => section.id)
             const sections = Object.values(data.columnMap).map(value => {
                 return value
             })
@@ -394,8 +427,8 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
             for (let i = 0; i < postSections.length; i++) {
                 for (let j = 0; j < postSections[i].length; j++) {
                     const task = {
-                        itemId: postSections[i][j].itemId,
-                        sectionId: sectionsIds[i],
+                        taskId: postSections[i][j].itemId,
+                        sectionId: sections[i].columnId,
                         order: j
                     }
                     tasks.push(task)
@@ -407,7 +440,9 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                 sectionsIds: sectionsIds,
                 tasks: tasks
             }
-            socket?.send(JSON.stringify(postData))
+            console.log("checkkkk", sections, arraysEqual(data.orderedColumnIds, currentProjectsectionsIds), compaireTasks(sections, currentProjectState?.sections))
+            if (!arraysEqual(data.orderedColumnIds, currentProjectsectionsIds) || !compaireTasks(sections, currentProjectState?.sections))
+                socket?.send(JSON.stringify(postData))
         }
     }, [data])
 
@@ -427,7 +462,7 @@ const Sections: FC<SectionsProps> = memo(({ boardId, socket }) => {
                             itemId: task.id.toString(),
                             name: task.name,
                             title: task.name,
-                            role: task.name + " rollee"
+                            role: task.name
                         };
                     })
                 };
@@ -751,6 +786,11 @@ function Page({ params }: { params: { slug: string } }) {
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log("event received:", data);
+
+            if (data && data.type === "section_update") {
+                console.log("event received:", event);
+                dispatch(setCurrentProject(data.project))
+            }
         };
 
         socket.onerror = (error) => {
