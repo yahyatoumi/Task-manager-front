@@ -28,11 +28,7 @@ export default function RootLayout({
       <body className={inter.className + " bg-background text-text"}>
         <ReactQueryProvider>
           <StoreProvider >
-            <Sidebar />
-            <Header />
-            <main className="h-[calc(100vh-48px)] w-screen sm:w-[calc(100vw-256px)] sm:ml-64">
-              {children}
-            </main>
+            {children}
             <NewWorkapces />
             <NewBoardModal />
           </StoreProvider>
