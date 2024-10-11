@@ -85,7 +85,7 @@ const HeaderRooms: FC<ComponentProps> = ({ display, closeAll, toggleSingleTab })
                     <div className="w-full h-[1px] bg-gray-100 my-2"></div>
                     <div >
                         <span className="text-xs ml-2">Your Workspace</span>
-                        <div className="flex flex-col gap-2 max-h-64 overflow-y-scroll">
+                        <div className="flex flex-col gap-2 max-h-64">
                             {
                                 workspaces?.data.map((workspace: WorkspaceType) => <WorkspaceCard key={workspace?.id} workspace={workspace} />)
                             }

@@ -22,9 +22,11 @@ const Home = () => {
       <main className="flex h-[calc(100vh-48px)] items-center justify-between px-64">
         <div className="text-4xl font-medium w-fit mx-auto text-center">
           {
-            isLoading ? <LoadingSpinner /> : <>
-              {workspaces?.data.length ? "Select a workspace" : "Create a workspace to start the journay"}
-            </>
+            isLoading ?
+              <LoadingSpinner />
+              : <>
+                {workspaces?.data.length ? "Select a workspace" : "Create a workspace to start the journay"}
+              </>
           }
         </div>
       </main>

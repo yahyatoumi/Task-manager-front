@@ -772,7 +772,8 @@ function Page({ params }: { params: { slug: string } }) {
 
     useEffect(() => {
         if (!uuid) return;
-        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/board/${params.slug}/?uuid=${uuid}`);
+        console.log("fffff", `${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/board/${params.slug}/?uuid=${uuid}`)
+        const socket = new WebSocket(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/board/${params.slug}/?uuid=${uuid}`);
         setSocket(socket);
 
         socket.onopen = () => {
