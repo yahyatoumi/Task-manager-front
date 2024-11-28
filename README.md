@@ -18,9 +18,10 @@ This is a task manager application inspired by Trello Kanban. It enables users t
 - **Django**: Framework for building the backend.
 - **Django Rest Framework**: RESTful API creation.
 - **Django Channels**: WebSocket integration for real-time updates.
+- **Github repository**:  [https://github.com/yahyatoumi/Task-manager-back]
 
 ### Frontend:
-- **Next.js**: React-based framework for building the frontend. [https://github.com/yahyatoumi/Task-manager-front]
+- **Next.js**: React-based framework for building the frontend.
 
 ### Authentication:
 - **Google OAuth**: Secure and seamless user authentication.
