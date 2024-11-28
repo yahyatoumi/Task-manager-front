@@ -1,7 +1,5 @@
 # Task Manager Application
 
-## Overview
-
 This is a task manager application inspired by Trello Kanban. It enables users to organize their workspaces, manage projects, and handle tasks efficiently. The application supports live updates, ensuring real-time collaboration when users create or update tasks.
 
 ## Features
